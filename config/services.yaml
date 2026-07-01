@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  DrupalContext\Service\AppStore: ~
+  DrupalContext\Service\AppStoreService: ~
+  DrupalContext\Service\AppStoreSkillService: ~
+  DrupalContext\Service\AppStoreProjectService: ~

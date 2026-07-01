@@ -1,0 +1,29 @@
+{
+  "name": "joaopauloctga/drupal-context-cli",
+  "description": "Manage Drupal skills provided by the drupalcontext.io",
+  "type": "project",
+  "autoload": {
+    "psr-4": {
+      "DrupalContext\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Joao Paulo Constantino",
+      "email": "joaopauloctga@gmail.com"
+    }
+  ],
+  "require": {
+    "symfony/console": "^7.0",
+    "laravel/prompts": "^0.3",
+    "symfony/dependency-injection": "^8.1",
+    "guzzlehttp/guzzle": "^7.0",
+    "ext-zip": "*",
+    "symfony/filesystem": "^8.1",
+    "symfony/yaml": "^8.1",
+    "symfony/config": "^8.1"
+  },
+  "bin": [
+    "bin/context"
+  ]
+}
