@@ -7,13 +7,16 @@ use DrupalContext\Service\AppInstaller;
 use DrupalContext\Service\AppStoreService;
 use DrupalContext\Service\CodeAgentsService;
 use DrupalContext\Service\SkillService;
-use DrupalContext\ValueObject\SkillValueObject;
+use DrupalContext\SkillInstalationStatus;
+use GuzzleHttp\Exception\BadResponseException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\error;
+use function Laravel\Prompts\info;
 use function Laravel\Prompts\warning;
 
 #[AsCommand(name: 'skill:add', description: 'Download and install a skill')]
@@ -48,8 +51,12 @@ class SkillAddCommand extends DrupalContextBaseCommand {
 
     $app = $this->appStoreService->getAppConfigFile();
 
-    if ($this->skillService->isSkillInstalled($skill)) {
-      warning("This skill is already installed.");
+    $status = $this->skillService->isSkillInstalled($skill);
+    if ($status !== SkillInstalationStatus::NOT_INSTALLED) {
+      $message = $status === SkillInstalationStatus::INTERNAL
+        ? "We already installed skill is already installed."
+        : "This is skill already exists and wasn't installed by us.";
+      warning($message);
       if (!confirm("Do you want to override?")) {
         return Command::SUCCESS;
       }
@@ -68,8 +75,18 @@ class SkillAddCommand extends DrupalContextBaseCommand {
       $this->codeAgentsService->installCodeAgents($missingAgents);
     }
 
-    // Install the skill at project level.
-    $skillInstalled = $this->skillService->installSkill($skill, $codeAgents, $source);
+    try {
+      // Install the skill at project level.
+      $skillInstalled = $this->skillService->installSkill($skill, $codeAgents, $source);
+    }
+    catch (BadResponseException $e) {
+      $status = $e->getResponse()->getStatusCode();
+      if ($status === 404) {
+        error("Skill $skill not found.");
+        info('Run `drupal-context skill:list` to see available skills.');
+        return Command::FAILURE;
+      }
+    }
 
     // Save the skill in the app store.
     $this->appStoreService

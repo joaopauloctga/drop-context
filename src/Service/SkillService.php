@@ -20,7 +20,7 @@ class SkillService {
 
   public function isSkillInstalled(string $skillName): SkillInstalationStatus {
     // Check if the skill is installed looking by the file system.
-    if ($this->getSkill($skillName) !== null) {
+    if (!$this->getSkill($skillName)) {
       return SkillInstalationStatus::NOT_INSTALLED;
     }
     // Check if installed by us.
