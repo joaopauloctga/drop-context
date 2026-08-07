@@ -41,7 +41,7 @@ class DrupalContextBaseCommand extends Command {
 
   private function runSetupWizard(): void {
     $detected = $this->appInstaller->detectAvailableCodeAgents();
-    $allKnown = ['.agents', '.claude', '.cursor', '.codex'];
+    $allKnown = ['.agents', '.claude'];
     $defaults = !empty($detected) ? $detected : ['.agents'];
 
     $selected = multiselect(

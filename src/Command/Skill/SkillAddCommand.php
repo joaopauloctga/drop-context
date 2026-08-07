@@ -19,7 +19,7 @@ use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\warning;
 
-#[AsCommand(name: 'skill:add', description: 'Download and install a skill')]
+#[AsCommand(name: 'skill:add', description: 'Download and install a skill', aliases: ['s:add'])]
 class SkillAddCommand extends DrupalContextBaseCommand {
 
   public function __construct(
@@ -54,8 +54,8 @@ class SkillAddCommand extends DrupalContextBaseCommand {
     $status = $this->skillService->isSkillInstalled($skill);
     if ($status !== SkillInstalationStatus::NOT_INSTALLED) {
       $message = $status === SkillInstalationStatus::INTERNAL
-        ? "We already installed skill is already installed."
-        : "This is skill already exists and wasn't installed by us.";
+        ? "The $skill is already installed."
+        : "The $skill already exists and wasn't installed by us.";
       warning($message);
       if (!confirm("Do you want to override?")) {
         return Command::SUCCESS;
