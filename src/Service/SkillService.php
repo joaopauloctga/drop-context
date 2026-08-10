@@ -72,4 +72,9 @@ class SkillService {
     return $sourceHandler->downloadSkill($skillName);
   }
 
+  public function listSkills($module = null): array {
+    $handler = $this->sourceManager->getSourceHandler('drupal-context');
+    return $handler->getSkillList($module);
+  }
+
 }

@@ -7,6 +7,7 @@ use DrupalContext\Command\CodeAgents\ListCodeAgents;
 use DrupalContext\Command\CodeAgents\RemoveCodeAgent;
 use DrupalContext\Command\CodeAgents\SetPreferableCodeAgents;
 use DrupalContext\Command\Skill\SkillAddCommand;
+use DrupalContext\Command\Skill\SkillListCommand;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use DrupalContext\Service\AppInstaller;
@@ -54,6 +55,7 @@ class ContainerFactory {
     $container->autowire(AddCodeAgent::class)->setPublic(true)->setAutoconfigured(true);
     $container->autowire(RemoveCodeAgent::class)->setPublic(true)->setAutoconfigured(true);
     $container->autowire(ListCodeAgents::class)->setPublic(true)->setAutoconfigured(true);
+    $container->autowire(SkillListCommand::class)->setPublic(true)->setAutoconfigured(true);
 
 
 

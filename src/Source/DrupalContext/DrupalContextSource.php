@@ -27,8 +27,7 @@ class DrupalContextSource implements SourceInterface {
     return true;
   }
 
-  public function getSkillList()
-  {
-    // TODO: Implement getSkillList() method.
+  public function getSkillList(?string $module = null): array {
+    return [];
   }
 }
