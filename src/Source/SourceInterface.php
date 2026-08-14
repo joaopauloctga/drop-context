@@ -1,11 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DrupalContext\Source;
+
+use DrupalContext\Gateway\Dto\SkillRow;
 
 interface SourceInterface {
 
-  public function downloadSkill($skillName);
+  /** Writes the resolved skill's files to the app cache. @return string the cached skill directory path */
+  public function downloadSkill(SkillRow $skill): string;
 
-  public function getSkillList();
+  /** @return SkillRow[] */
+  public function getSkillList(?string $module = null): array;
 
 }

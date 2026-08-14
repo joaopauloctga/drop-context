@@ -22,12 +22,20 @@ class CodeAgentsService {
   ];
 
   public function readCurrentCodeAgents(): array {
-    $projectRoot = $this->appStoreService->getRunnableProject()->path;
+    $runnableProject = $this->appStoreService->getRunnableProject();
+    if ($runnableProject === null) {
+      return [];
+    }
+    $projectRoot = $runnableProject->path;
     return array_filter(self::KNOWN_CODE_AGENTS, fn($agent) => $this->filesystem->exists($projectRoot . DIRECTORY_SEPARATOR . $agent));
   }
 
   public function installCodeAgents(array $missingAgents): void {
-    $projectRoot = $this->appStoreService->getRunnableProject()->path;
+    $runnableProject = $this->appStoreService->getRunnableProject();
+    if ($runnableProject === null) {
+      throw new \RuntimeException('Run this command inside a project with a composer.json.');
+    }
+    $projectRoot = $runnableProject->path;
     foreach ($missingAgents as $agent) {
       $this->filesystem->mkdir($projectRoot . DIRECTORY_SEPARATOR . $agent);
     }

@@ -1,0 +1,45 @@
+<?php
+
+declare(strict_types=1);
+
+namespace DrupalContext\Gateway\Repository;
+
+use DrupalContext\Gateway\Dto\ReleaseRow;
+use DrupalContext\Gateway\GatewayClientInterface;
+use DrupalContext\Gateway\Query;
+
+/** Thin typed wrapper over the `drupal_context/module_release` resource. */
+class ReleaseRepository {
+
+  private const string ENTITY_TYPE = 'drupal_context';
+
+  private const string BUNDLE = 'module_release';
+
+  public function __construct(
+    private readonly GatewayClientInterface $client,
+  ) {}
+
+  /** @return ReleaseRow[] */
+  public function findByModuleUuid(string $moduleUuid): array {
+    $query = (new Query())->filter('module', $moduleUuid);
+    $rows = [];
+    foreach ($this->client->iterate(self::ENTITY_TYPE, self::BUNDLE, $query) as $row) {
+      $rows[] = ReleaseRow::fromArray($row);
+    }
+    return $rows;
+  }
+
+  /** @param string[] $uuids @return array<string, ReleaseRow> keyed by uuid */
+  public function findByUuids(array $uuids): array {
+    $rows = [];
+    foreach (array_chunk(array_values(array_unique($uuids)), 50) as $chunk) {
+      $query = (new Query())->filter('uuid', $chunk, 'in');
+      foreach ($this->client->iterate(self::ENTITY_TYPE, self::BUNDLE, $query) as $row) {
+        $release = ReleaseRow::fromArray($row);
+        $rows[$release->uuid] = $release;
+      }
+    }
+    return $rows;
+  }
+
+}

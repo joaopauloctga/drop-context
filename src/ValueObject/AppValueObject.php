@@ -15,6 +15,7 @@ class AppValueObject {
     public array $codeAgents = [
       '.agents',
     ],
+    public ?object $gateway = null,
   ) {}
 
 }

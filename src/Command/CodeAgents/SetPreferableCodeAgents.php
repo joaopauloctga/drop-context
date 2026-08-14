@@ -3,6 +3,7 @@
 namespace DrupalContext\Command\CodeAgents;
 
 use DrupalContext\Command\DrupalContextBaseCommand;
+use DrupalContext\Console\Ui;
 use DrupalContext\Service\AppInstaller;
 use DrupalContext\Service\AppStoreService;
 use DrupalContext\Service\CodeAgentsService;
@@ -17,10 +18,11 @@ class SetPreferableCodeAgents extends DrupalContextBaseCommand {
 
   public function __construct(
     AppInstaller $appInstaller,
+    Ui $ui,
     protected CodeAgentsService $codeAgentsService,
     protected AppStoreService $appStoreService,
   ) {
-    parent::__construct($appInstaller);
+    parent::__construct($appInstaller, $ui);
   }
 
   public function configure(): void {
@@ -46,6 +48,7 @@ class SetPreferableCodeAgents extends DrupalContextBaseCommand {
       return trim($name);
     }, $codeAgents);
     $this->appStoreService->writeAppConfig($app);
+    $this->ui->info('Preferable code agents set to: ' . implode(', ', $app->codeAgents));
     return Command::SUCCESS;
   }
 

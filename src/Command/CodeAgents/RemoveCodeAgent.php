@@ -3,6 +3,7 @@
 namespace DrupalContext\Command\CodeAgents;
 
 use DrupalContext\Command\DrupalContextBaseCommand;
+use DrupalContext\Console\Ui;
 use DrupalContext\Service\AppInstaller;
 use DrupalContext\Service\AppStoreService;
 use DrupalContext\Service\CodeAgentsService;
@@ -17,10 +18,11 @@ class RemoveCodeAgent extends DrupalContextBaseCommand {
 
   public function __construct(
     AppInstaller $appInstaller,
+    Ui $ui,
     protected CodeAgentsService $codeAgentsService,
     protected AppStoreService $appStoreService,
   ) {
-    parent::__construct($appInstaller);
+    parent::__construct($appInstaller, $ui);
   }
 
   public function configure(): void {
@@ -45,13 +47,13 @@ class RemoveCodeAgent extends DrupalContextBaseCommand {
     $filtered = array_values(array_filter($app->codeAgents, fn($a) => $a !== $name));
 
     if (count($filtered) === count($app->codeAgents)) {
-      $output->writeln("Code agent <info>$name</info> not found in the list.");
+      $this->ui->error("Code agent $name not found in the list.");
       return Command::FAILURE;
     }
 
     $app->codeAgents = $filtered;
     $this->appStoreService->writeAppConfig($app);
-    $output->writeln("Removed code agent <info>$name</info>.");
+    $this->ui->info("Removed code agent $name.");
     return Command::SUCCESS;
   }
 

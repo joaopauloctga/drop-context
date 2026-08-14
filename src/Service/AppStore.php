@@ -92,6 +92,7 @@ class AppStore {
         skills: $config->skills,
         agents: $config->agents,
         codeAgents: $config->codeAgents,
+        gateway: $config->gateway ?? null,
       );
     }
 

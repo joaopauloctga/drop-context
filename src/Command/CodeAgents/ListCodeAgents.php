@@ -3,6 +3,7 @@
 namespace DrupalContext\Command\CodeAgents;
 
 use DrupalContext\Command\DrupalContextBaseCommand;
+use DrupalContext\Console\Ui;
 use DrupalContext\Service\AppInstaller;
 use DrupalContext\Service\AppStoreService;
 use DrupalContext\Service\CodeAgentsService;
@@ -16,23 +17,27 @@ class ListCodeAgents extends DrupalContextBaseCommand {
 
   public function __construct(
     AppInstaller $appInstaller,
+    Ui $ui,
     protected CodeAgentsService $codeAgentsService,
     protected AppStoreService $appStoreService,
   ) {
-    parent::__construct($appInstaller);
+    parent::__construct($appInstaller, $ui);
   }
 
   public function execute(InputInterface $input, OutputInterface $output): int {
     $app = $this->appStoreService->getAppConfigFile();
 
-    if (empty($app->codeAgents)) {
-      $output->writeln('No code agents configured.');
+    if ($this->ui->isJson()) {
+      $this->ui->json(['codeAgents' => $app->codeAgents]);
       return Command::SUCCESS;
     }
 
-    foreach ($app->codeAgents as $agent) {
-      $output->writeln($agent);
+    if (empty($app->codeAgents)) {
+      $this->ui->note('No code agents configured.');
+      return Command::SUCCESS;
     }
+
+    $this->ui->table(['Code agent'], array_map(fn($agent) => [$agent], $app->codeAgents));
 
     return Command::SUCCESS;
   }

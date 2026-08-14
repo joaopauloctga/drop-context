@@ -20,7 +20,7 @@ class AppStoreService {
     return $this->store->getApp();
   }
 
-  public function getRunnableProject(): RunnableProjectValueObject {
+  public function getRunnableProject(): ?RunnableProjectValueObject {
     return $this->store->getRunnableProject();
   }
 

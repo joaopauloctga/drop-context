@@ -3,6 +3,7 @@
 namespace DrupalContext\Command\CodeAgents;
 
 use DrupalContext\Command\DrupalContextBaseCommand;
+use DrupalContext\Console\Ui;
 use DrupalContext\Service\AppInstaller;
 use DrupalContext\Service\AppStoreService;
 use DrupalContext\Service\CodeAgentsService;
@@ -17,10 +18,11 @@ class AddCodeAgent extends DrupalContextBaseCommand {
 
   public function __construct(
     AppInstaller $appInstaller,
+    Ui $ui,
     protected CodeAgentsService $codeAgentsService,
     protected AppStoreService $appStoreService,
   ) {
-    parent::__construct($appInstaller);
+    parent::__construct($appInstaller, $ui);
   }
 
   public function configure(): void {
@@ -43,13 +45,13 @@ class AddCodeAgent extends DrupalContextBaseCommand {
     $app = $this->appStoreService->getAppConfigFile();
 
     if (in_array($name, $app->codeAgents, true)) {
-      $output->writeln("Code agent <info>$name</info> is already in the list.");
+      $this->ui->info("Code agent $name is already in the list.");
       return Command::SUCCESS;
     }
 
     $app->codeAgents[] = $name;
     $this->appStoreService->writeAppConfig($app);
-    $output->writeln("Added code agent <info>$name</info>.");
+    $this->ui->info("Added code agent $name.");
     return Command::SUCCESS;
   }
 

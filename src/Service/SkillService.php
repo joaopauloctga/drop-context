@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace DrupalContext\Service;
 
+use DrupalContext\Console\Ui;
+use DrupalContext\Gateway\Dto\SkillRow;
 use DrupalContext\SkillInstalationStatus;
 use DrupalContext\Source\SourceManager;
 use DrupalContext\ValueObject\SkillValueObject;
 use Symfony\Component\Filesystem\Filesystem;
-use function Laravel\Prompts\warning;
-
 
 class SkillService {
 
@@ -15,6 +17,7 @@ class SkillService {
     protected SourceManager $sourceManager,
     protected Filesystem $filesystem,
     protected AppStoreService $appStoreService,
+    protected Ui $ui,
   )
   {}
 
@@ -30,13 +33,19 @@ class SkillService {
     return SkillInstalationStatus::EXTERNAL;
   }
 
-  public function installSkill(string $skillName, array $codeAgents = [], string $source = "drupal-context"): SkillValueObject {
-    $skillDir = $this->getSkill($skillName);
-    if (!$skillDir) {
-      $skillDir = $this->downloadSkill($skillName, $source);
-    }
+  public function installSkill(SkillRow $skill, array $codeAgents = [], string $source = "drupal-context"): SkillValueObject {
+    // Always (re)write the cached copy from the already-resolved row, so an
+    // override/--force reinstall actually refreshes the content instead of
+    // re-symlinking a stale cache dir.
+    $skillDir = $this->downloadSkill($skill, $source);
+    // The canonical, sanitized directory name — never the raw server title.
+    $skillName = basename($skillDir);
 
-    $projectDir = $this->appStoreService->getRunnableProject()->path;
+    $runnableProject = $this->appStoreService->getRunnableProject();
+    if ($runnableProject === null) {
+      throw new \RuntimeException('Run this command inside a project with a composer.json.');
+    }
+    $projectDir = $runnableProject->path;
 
     $skillInstalled = new SkillValueObject(
       name: $skillName,
@@ -45,20 +54,78 @@ class SkillService {
       version: "1.0.0",
     );
 
+    $failures = [];
     foreach ($codeAgents as $codeAgent) {
-      $target = implode(DIRECTORY_SEPARATOR, [$projectDir, $codeAgent, "skills", $skillName]);
+      $agentSkillsDir = implode(DIRECTORY_SEPARATOR, [$projectDir, $codeAgent, "skills"]);
+      $target = $agentSkillsDir . DIRECTORY_SEPARATOR . $skillName;
       try {
+        $this->filesystem->mkdir($agentSkillsDir);
         if ($this->filesystem->exists($target)) {
           $this->filesystem->remove($target);
         }
-        $this->filesystem->symlink($skillDir,  $target);
+        $this->filesystem->symlink($skillDir, $target);
         $skillInstalled->agents[] = [$codeAgent, $target];
       }
       catch (\Exception $e) {
-        warning("Error installing skill {$skillName} for code agent {$codeAgent}: {$e->getMessage()}");
+        $failures[] = "{$codeAgent}: {$e->getMessage()}";
+        $this->ui->warning("Error installing skill {$skillName} for code agent {$codeAgent}: {$e->getMessage()}");
       }
     }
+
+    if ($codeAgents !== [] && $skillInstalled->agents === []) {
+      throw new \RuntimeException(
+        "Skill {$skillName} could not be installed for any code agent: " . implode('; ', $failures),
+      );
+    }
+
     return $skillInstalled;
+  }
+
+  /**
+   * Removes a skill from the given code agent dirs of the current project.
+   *
+   * @return array<int, array{0: string, 1: string}>
+   *   The [codeAgent, removedPath] pairs that actually existed.
+   */
+  public function removeSkill(string $skillName, array $codeAgents): array {
+    $runnableProject = $this->appStoreService->getRunnableProject();
+    if ($runnableProject === null) {
+      throw new \RuntimeException('Run this command inside a project with a composer.json.');
+    }
+    $projectDir = $runnableProject->path;
+
+    $removed = [];
+    foreach ($codeAgents as $codeAgent) {
+      $target = implode(DIRECTORY_SEPARATOR, [$projectDir, $codeAgent, "skills", $skillName]);
+      if (!$this->filesystem->exists($target) && !is_link($target)) {
+        continue;
+      }
+      $this->filesystem->remove($target);
+      $removed[] = [$codeAgent, $target];
+    }
+    return $removed;
+  }
+
+  /**
+   * The project paths a skill occupies, keyed by code agent dir.
+   *
+   * @return array<string, string>
+   */
+  public function findInstalledPaths(string $skillName, array $codeAgents): array {
+    $runnableProject = $this->appStoreService->getRunnableProject();
+    if ($runnableProject === null) {
+      return [];
+    }
+
+    $paths = [];
+    foreach ($codeAgents as $codeAgent) {
+      $target = implode(DIRECTORY_SEPARATOR, [$runnableProject->path, $codeAgent, "skills", $skillName]);
+      // is_link() catches broken symlinks Filesystem::exists() reports absent.
+      if ($this->filesystem->exists($target) || is_link($target)) {
+        $paths[$codeAgent] = $target;
+      }
+    }
+    return $paths;
   }
 
   public function getSkill(string $skillName): ?string {
@@ -67,13 +134,13 @@ class SkillService {
     return $this->filesystem->exists($skillDir) ? $skillDir : null;
   }
 
-  public function downloadSkill(string $skillName, string $source = "drupal-context"): bool {
+  public function downloadSkill(SkillRow $skill, string $source = "drupal-context"): string {
     $sourceHandler = $this->sourceManager->getSourceHandler($source);
-    return $sourceHandler->downloadSkill($skillName);
+    return $sourceHandler->downloadSkill($skill);
   }
 
-  public function listSkills($module = null): array {
-    $handler = $this->sourceManager->getSourceHandler('drupal-context');
+  public function listSkills(?string $module = null, string $source = "drupal-context"): array {
+    $handler = $this->sourceManager->getSourceHandler($source);
     return $handler->getSkillList($module);
   }
 

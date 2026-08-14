@@ -32,4 +32,12 @@ class AppStoreSkillService {
     return !empty(array_filter($skills, fn($skill) => $skill->name === $skillName));
   }
 
+  public function detach(string $skillName): void {
+    $project = $this->store->getApp()->projects[$this->store->getProjectIndex()];
+    $project->skills = array_values(
+      array_filter($project->skills, fn($skill) => $skill->name !== $skillName)
+    );
+    $this->store->save();
+  }
+
 }
