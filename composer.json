@@ -1,7 +1,25 @@
 {
   "name": "joaopauloctga/drupal-context-cli",
-  "description": "Manage Drupal skills provided by the drupalcontext.io",
-  "type": "project",
+  "description": "Install and manage AI agent skills provided by Drupal Context",
+  "type": "library",
+  "homepage": "https://dropcontext.dev",
+  "keywords": [
+    "drupal",
+    "ai",
+    "agent",
+    "skills",
+    "cli"
+  ],
+  "support": {
+    "issues": "https://github.com/joaopauloctga/drop-context/issues",
+    "source": "https://github.com/joaopauloctga/drop-context"
+  },
+  "config": {
+    "platform": {
+      "php": "8.3.0"
+    },
+    "sort-packages": true
+  },
   "autoload": {
     "psr-4": {
       "DrupalContext\\": "src/"
@@ -14,14 +32,16 @@
     }
   ],
   "require": {
-    "symfony/console": "^7.0",
-    "laravel/prompts": "^0.3",
-    "symfony/dependency-injection": "^8.1",
-    "guzzlehttp/guzzle": "^7.0",
+    "php": "^8.3",
     "ext-zip": "*",
-    "symfony/filesystem": "^8.1",
-    "symfony/yaml": "^8.1",
-    "symfony/config": "^8.1"
+    "composer-runtime-api": "^2.2",
+    "guzzlehttp/guzzle": "^7.15.3",
+    "laravel/prompts": "^0.3",
+    "symfony/config": "^7.4",
+    "symfony/console": "^7.4",
+    "symfony/dependency-injection": "^7.4",
+    "symfony/filesystem": "^7.4",
+    "symfony/yaml": "^7.4"
   },
   "bin": [
     "bin/context"

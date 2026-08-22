@@ -73,7 +73,7 @@ class AppStore {
 
     if (!file_exists($config_file_path)) {
       $this->app = new AppValueObject(
-        version: Application::VERSION,
+        version: Application::currentVersion(),
         created: $now,
         changed: $now,
         projects: [],
@@ -85,7 +85,7 @@ class AppStore {
     else {
       $config = json_decode(file_get_contents($config_file_path), false, 512, JSON_THROW_ON_ERROR);
       $this->app = new AppValueObject(
-        version: $config->version,
+        version: Application::currentVersion(),
         created: $config->created,
         changed: $config->changed,
         projects: $config->projects,
@@ -116,7 +116,7 @@ class AppStore {
       $this->app->projects[] = new ProjectValueObject(
         name: $this->runnableProject->name,
         path: $this->runnableProject->path,
-        version: Application::VERSION,
+        version: Application::currentVersion(),
         skills: [],
         agents: [],
       );

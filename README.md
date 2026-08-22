@@ -1,6 +1,6 @@
 # drop-context
 
-A CLI that installs **AI agent skills** from a [Drupal Context](https://drupalcontext.io) site into your project. It browses the site's [entity_gateway](https://www.drupal.org/project/entity_gateway) JSON API, downloads a skill's `SKILL.md` + `references/*.md`, caches them in `~/.drupal-context/skills/`, and symlinks them into whatever agent directories your project uses (`.claude`, `.agents`, `.cursor`, `.codex`).
+A CLI that installs **AI agent skills** from a [Drupal Context](https://dropcontext.dev) site into your project. It browses the site's [entity_gateway](https://www.drupal.org/project/entity_gateway) JSON API, downloads a skill's `SKILL.md` + `references/*.md`, caches them in `~/.drupal-context/skills/`, and symlinks them into whatever agent directories your project uses (`.claude`, `.agents`, `.cursor`, `.codex`).
 
 ```
 $ context skill:add boost-feeds
@@ -20,18 +20,24 @@ $ context skill:add boost-feeds
 ## Installation
 
 ```bash
-git clone <this repo> drop-context
-cd drop-context
-composer install
+composer global require "joaopauloctga/drupal-context-cli:^0"
 ```
 
-The binary is `bin/context`. For convenience, alias it:
+Make sure Composer's global binary directory is in your `PATH`. You can find it with:
 
 ```bash
-alias context="/path/to/drop-context/bin/context"
+composer global config bin-dir --absolute
+```
+
+For example, on macOS or Linux:
+
+```bash
+export PATH="$(composer global config bin-dir --absolute):$PATH"
 ```
 
 On the **first run** inside a project, an interactive wizard asks which agent directories you want managed and creates `~/.drupal-context/app.json`. Commands that install/remove skills must run **inside a project containing a `composer.json`** — list/search commands work from anywhere.
+
+To install the development branch directly from a clone instead, run `composer install` and use `bin/context`.
 
 ## Quick start
 
@@ -40,6 +46,23 @@ context skill:list                     # what's available?
 context skill:show boost-feeds        # what does this one do?
 context skill:add boost-feeds         # install it into this project
 context skill:remove boost-feeds      # remove it again
+```
+
+## Updates
+
+Update the CLI with Composer:
+
+```bash
+composer global update joaopauloctga/drupal-context-cli
+```
+
+Once every 24 hours, successful interactive commands make a best-effort request to Packagist and print a notice to stderr when a newer stable version is available. The check has a two-second timeout, is silent on network errors, and does not run for `--json`, non-interactive sessions, or CI.
+
+Disable it for one command or for an environment:
+
+```bash
+context skill:list --no-update-check
+DRUPAL_CONTEXT_NO_UPDATE_CHECK=1 context skill:list
 ```
 
 ## Commands
@@ -146,7 +169,7 @@ The gateway endpoint is resolved in this order: **environment variable → `app.
 
 | Setting | Env var | `~/.drupal-context/app.json` | Default |
 |---|---|---|---|
-| Base URL | `DRUPAL_CONTEXT_URL` | `gateway.url` | `https://drupal-context.ddev.site` |
+| Base URL | `DRUPAL_CONTEXT_URL` | `gateway.url` | `https://dropcontext.dev` |
 | TLS verification | `DRUPAL_CONTEXT_TLS_VERIFY` (`0`/`false` to disable) | `gateway.tlsVerify` | on — except `*.ddev.site` hosts (self-signed local certs) |
 
 Example `app.json` fragment:
@@ -154,7 +177,7 @@ Example `app.json` fragment:
 ```json
 {
   "gateway": {
-    "url": "https://drupalcontext.io",
+    "url": "https://dropcontext.dev",
     "tlsVerify": true
   }
 }
@@ -163,15 +186,16 @@ Example `app.json` fragment:
 Point at any environment ad hoc:
 
 ```bash
-DRUPAL_CONTEXT_URL=https://drupalcontext.io context skill:list
+DRUPAL_CONTEXT_URL=https://dropcontext.dev context skill:list
 ```
 
 ## Files and state
 
 ```
 ~/.drupal-context/
-├── app.json          # setup, managed agent dirs, per-project installed skills
-└── skills/<name>/    # cached skill content (SKILL.md + references/)
+├── app.json           # setup, managed agent dirs, per-project installed skills
+├── update-check.json  # cached Packagist update check
+└── skills/<name>/     # cached skill content (SKILL.md + references/)
     
 <project>/.claude/skills/<name>   → symlink into the cache
 <project>/.agents/skills/<name>   → symlink into the cache

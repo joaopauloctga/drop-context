@@ -27,6 +27,8 @@ use DrupalContext\Service\AppInstaller;
 use DrupalContext\Service\CodeAgentsService;
 use DrupalContext\Service\SkillFileWriter;
 use DrupalContext\Service\SkillService;
+use DrupalContext\Service\UpdateChecker;
+use DrupalContext\Service\UpdateNotifier;
 use DrupalContext\Source\DrupalContext\DrupalContextSource;
 use DrupalContext\Source\SkilsSH\SkillsSHSource;
 use DrupalContext\Source\SourceManager;
@@ -58,6 +60,8 @@ class ContainerFactory {
     $container->autowire(CodeAgentsService::class);
     $container->autowire(SourceManager::class);
     $container->autowire(SkillService::class)->setPublic(true);
+    $container->autowire(UpdateChecker::class);
+    $container->autowire(UpdateNotifier::class)->setPublic(true);
     $container->autowire(DrupalContextSource::class)->setPublic(true);
     $container->autowire(SkillsSHSource::class)->setPublic(true);
 

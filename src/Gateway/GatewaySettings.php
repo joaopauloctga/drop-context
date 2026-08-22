@@ -9,7 +9,7 @@ use DrupalContext\Service\AppStoreService;
 /** Resolves the gateway base URL and TLS verification policy: env → app.json → default. */
 class GatewaySettings {
 
-  final public const string DEFAULT_BASE_URL = 'https://drupal-context.ddev.site';
+  final public const string DEFAULT_BASE_URL = 'https://dropcontext.dev';
 
   public function __construct(
     private readonly AppStoreService $appStoreService,
