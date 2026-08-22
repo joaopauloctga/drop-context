@@ -61,7 +61,7 @@ class DropContextBaseCommand extends Command {
       if (!$interactive) {
         throw new \RuntimeException(
           'Drop Context CLI is not set up yet. Run a command interactively first to complete setup ' .
-          '(e.g. `context skill:add <skill>`).',
+          '(e.g. `drop-context skill:add <skill>`).',
         );
       }
       $this->runSetupWizard();

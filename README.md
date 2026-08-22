@@ -5,7 +5,7 @@ Drop Context is a CLI for finding and installing AI agent skills from [dropconte
 It supports Claude Code, Codex, Cursor, and other agents that use project-level skill directories.
 
 ```text
-$ context skill:add boost-feeds
+$ drop-context skill:add boost-feeds
 
  Installing skill 'boost-feeds'
 
@@ -25,6 +25,12 @@ Install Drop Context globally:
 composer global require "joaopauloctga/drop-context:^0"
 ```
 
+Until the first tagged release is available, install the development branch instead:
+
+```bash
+composer global require "joaopauloctga/drop-context:dev-main"
+```
+
 Make sure Composer's global binary directory is in your `PATH`:
 
 ```bash
@@ -40,7 +46,7 @@ export PATH="$(composer global config bin-dir --absolute):$PATH"
 Confirm the installation:
 
 ```bash
-context --version
+drop-context --version
 ```
 
 ## Getting started
@@ -48,10 +54,10 @@ context --version
 Run commands from a project containing a `composer.json`. On the first command that changes the project, Drop Context asks which coding agents you want to manage.
 
 ```bash
-context skill:list
-context skill:show boost-feeds
-context skill:add boost-feeds
-context skill:remove boost-feeds
+drop-context skill:list
+drop-context skill:show boost-feeds
+drop-context skill:add boost-feeds
+drop-context skill:remove boost-feeds
 ```
 
 Discovery commands such as `skill:list`, `skill:show`, `skill:tags`, and `module:list` can run from any directory.
@@ -71,16 +77,16 @@ Discovery commands such as `skill:list`, `skill:show`, `skill:tags`, and `module
 | `code-agents:remove <agent>` | `ca:rm` | Remove a coding agent |
 | `code-agents:set-preferable <agents>` | `ca:set` | Replace the preferred coding agents |
 
-Run `context <command> --help` to see every argument and option.
+Run `drop-context <command> --help` to see every argument and option.
 
 ### Find skills
 
 ```bash
-context skill:list
-context skill:list --search=views
-context skill:list --module=feeds
-context skill:list --tag="AI Integration"
-context skill:list --type=contrib_module
+drop-context skill:list
+drop-context skill:list --search=views
+drop-context skill:list --module=feeds
+drop-context skill:list --tag="AI Integration"
+drop-context skill:list --type=contrib_module
 ```
 
 Filters can be combined. Supported types are `core_module`, `contrib_module`, `core_component`, `agent_skill`, `user_skill`, and `other`.
@@ -88,8 +94,8 @@ Filters can be combined. Supported types are `core_module`, `contrib_module`, `c
 ### Inspect a skill
 
 ```bash
-context skill:show boost-feeds
-context skill:show boost-feeds --content
+drop-context skill:show boost-feeds
+drop-context skill:show boost-feeds --content
 ```
 
 Skills can be selected by name or UUID. When a name is ambiguous, Drop Context offers matching suggestions.
@@ -97,8 +103,8 @@ Skills can be selected by name or UUID. When a name is ambiguous, Drop Context o
 ### Install a skill
 
 ```bash
-context skill:add boost-feeds
-context skill:add boost-feeds --force
+drop-context skill:add boost-feeds
+drop-context skill:add boost-feeds --force
 ```
 
 `--force` reinstalls an existing skill without confirmation. The skill is installed for the coding agents configured in the current project.
@@ -106,8 +112,8 @@ context skill:add boost-feeds --force
 ### Remove a skill
 
 ```bash
-context skill:remove boost-feeds
-context skill:remove boost-feeds --purge
+drop-context skill:remove boost-feeds
+drop-context skill:remove boost-feeds --purge
 ```
 
 `--purge` also removes the downloaded copy. Drop Context asks for confirmation before removing a skill it did not install; use `--force` only when you intend to remove it.
@@ -115,19 +121,19 @@ context skill:remove boost-feeds --purge
 ### Browse tags and modules
 
 ```bash
-context skill:tags
-context module:list
-context module:list feed
-context module:list "exposed" --title
+drop-context skill:tags
+drop-context module:list
+drop-context module:list feed
+drop-context module:list "exposed" --title
 ```
 
 ### Configure coding agents
 
 ```bash
-context code-agents:list
-context code-agents:add .cursor
-context code-agents:remove .cursor
-context code-agents:set-preferable .claude,.agents
+drop-context code-agents:list
+drop-context code-agents:add .cursor
+drop-context code-agents:remove .cursor
+drop-context code-agents:set-preferable .claude,.agents
 ```
 
 Supported directories are `.claude`, `.agents`, `.cursor`, and `.codex`.
@@ -137,10 +143,10 @@ Supported directories are `.claude`, `.agents`, `.cursor`, and `.codex`.
 Use `--json` for scripts and integrations:
 
 ```bash
-context skill:list --type=contrib_module --json | jq '.skills[].title'
-context skill:show boost-feeds --json | jq '.references'
-context skill:add boost-feeds --json
-context skill:remove boost-feeds --json
+drop-context skill:list --type=contrib_module --json | jq '.skills[].title'
+drop-context skill:show boost-feeds --json | jq '.references'
+drop-context skill:add boost-feeds --json
+drop-context skill:remove boost-feeds --json
 ```
 
 Machine-readable JSON is written to stdout and commands return a non-zero exit code when they fail.
@@ -156,7 +162,7 @@ composer global update joaopauloctga/drop-context
 The CLI periodically notifies you when a newer stable version is available. Disable the check for a command with:
 
 ```bash
-context skill:list --no-update-check
+drop-context skill:list --no-update-check
 ```
 
 ## License
