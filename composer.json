@@ -1,7 +1,8 @@
 {
-  "name": "joaopauloctga/drupal-context-cli",
-  "description": "Install and manage AI agent skills provided by Drupal Context",
+  "name": "joaopauloctga/drop-context",
+  "description": "Install and manage AI agent skills provided by Drop Context",
   "type": "library",
+  "license": "MIT",
   "homepage": "https://dropcontext.dev",
   "keywords": [
     "drupal",
@@ -22,7 +23,7 @@
   },
   "autoload": {
     "psr-4": {
-      "DrupalContext\\": "src/"
+      "DropContext\\": "src/"
     }
   },
   "authors": [

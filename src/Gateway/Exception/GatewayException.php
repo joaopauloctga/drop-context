@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway\Exception;
+namespace DropContext\Gateway\Exception;
 
 /** Base exception for entity_gateway HTTP/protocol errors. Carries the HTTP status and server message. */
 class GatewayException extends \RuntimeException {

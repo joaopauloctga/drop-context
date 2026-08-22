@@ -4,7 +4,7 @@ services:
     autowire: true
     autoconfigure: true
 
-  DrupalContext\Service\AppStore: ~
-  DrupalContext\Service\AppStoreService: ~
-  DrupalContext\Service\AppStoreSkillService: ~
-  DrupalContext\Service\AppStoreProjectService: ~
+  DropContext\Service\AppStore: ~
+  DropContext\Service\AppStoreService: ~
+  DropContext\Service\AppStoreSkillService: ~
+  DropContext\Service\AppStoreProjectService: ~

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Command\Skill;
+namespace DropContext\Command\Skill;
 
-use DrupalContext\Command\DrupalContextBaseCommand;
-use DrupalContext\Console\Ui;
-use DrupalContext\Gateway\Dto\SkillRow;
-use DrupalContext\Gateway\Dto\SkillType;
-use DrupalContext\Gateway\Exception\GatewayException;
-use DrupalContext\Gateway\Exception\ModuleNotFoundException;
-use DrupalContext\Gateway\Exception\TagNotFoundException;
-use DrupalContext\Gateway\SkillQueryService;
-use DrupalContext\Service\AppInstaller;
+use DropContext\Command\DropContextBaseCommand;
+use DropContext\Console\Ui;
+use DropContext\Gateway\Dto\SkillRow;
+use DropContext\Gateway\Dto\SkillType;
+use DropContext\Gateway\Exception\GatewayException;
+use DropContext\Gateway\Exception\ModuleNotFoundException;
+use DropContext\Gateway\Exception\TagNotFoundException;
+use DropContext\Gateway\SkillQueryService;
+use DropContext\Service\AppInstaller;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,10 +21,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
   name: 'skill:list',
-  description: 'List skills from the Drupal Context gateway',
+  description: 'List skills from the Drop Context gateway',
   aliases: ['s:list', 'skill:source-list', 's:s-list'],
 )]
-class SkillListCommand extends DrupalContextBaseCommand {
+class SkillListCommand extends DropContextBaseCommand {
 
   public function __construct(
     AppInstaller $appInstaller,

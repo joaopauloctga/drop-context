@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Command\Skill;
+namespace DropContext\Command\Skill;
 
-use DrupalContext\Console\Exception\NonInteractivePromptException;
-use DrupalContext\Gateway\Dto\SkillLookupResult;
-use DrupalContext\Gateway\Dto\SkillRow;
+use DropContext\Console\Exception\NonInteractivePromptException;
+use DropContext\Gateway\Dto\SkillLookupResult;
+use DropContext\Gateway\Dto\SkillRow;
 
-/** Shared not-found/ambiguous resolution UX for skill:add and skill:show. Requires $this->ui (DrupalContextBaseCommand). */
+/** Shared not-found/ambiguous resolution UX for skill:add and skill:show. Requires $this->ui (DropContextBaseCommand). */
 trait ResolvesSkillTrait {
 
   /** Resolves a lookup result to exactly one SkillRow, prompting on ambiguity. null means an error was already emitted. */

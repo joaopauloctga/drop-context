@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway;
+namespace DropContext\Gateway;
 
-use DrupalContext\Service\AppStoreService;
+use DropContext\Service\AppStoreService;
 
 /** Resolves the gateway base URL and TLS verification policy: env → app.json → default. */
 class GatewaySettings {
@@ -16,7 +16,7 @@ class GatewaySettings {
   ) {}
 
   public function getBaseUrl(): string {
-    $env = getenv('DRUPAL_CONTEXT_URL');
+    $env = getenv('DROP_CONTEXT_URL');
     if (is_string($env) && $env !== '') {
       return rtrim($env, '/');
     }
@@ -31,7 +31,7 @@ class GatewaySettings {
 
   /** Verify on by default, except for `.ddev.site` hosts (self-signed local certs). */
   public function tlsVerify(): bool {
-    $env = getenv('DRUPAL_CONTEXT_TLS_VERIFY');
+    $env = getenv('DROP_CONTEXT_TLS_VERIFY');
     if (is_string($env) && $env !== '') {
       return filter_var($env, FILTER_VALIDATE_BOOLEAN);
     }

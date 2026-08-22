@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Command;
+namespace DropContext\Command;
 
-use DrupalContext\Console\Ui;
-use DrupalContext\Gateway\Exception\GatewayException;
-use DrupalContext\Gateway\Exception\GatewayNotFoundException;
-use DrupalContext\Service\AppInstaller;
-use DrupalContext\Service\CodeAgentsService;
+use DropContext\Console\Ui;
+use DropContext\Gateway\Exception\GatewayException;
+use DropContext\Gateway\Exception\GatewayNotFoundException;
+use DropContext\Service\AppInstaller;
+use DropContext\Service\CodeAgentsService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /** Base command: wires Ui, the global --json/--source options, and first-run wizard gating. */
-class DrupalContextBaseCommand extends Command {
+class DropContextBaseCommand extends Command {
 
   public function __construct(
     private readonly AppInstaller $appInstaller,
@@ -35,9 +35,9 @@ class DrupalContextBaseCommand extends Command {
       shortcut: 's',
       mode: InputOption::VALUE_OPTIONAL,
       description: 'Source where to download the skills from',
-      default: 'drupal-context',
+      default: 'drop-context',
       suggestedValues: [
-        'drupal-context',
+        'drop-context',
         'skill.sh',
       ]
     );
@@ -60,7 +60,7 @@ class DrupalContextBaseCommand extends Command {
     if (!$this->appInstaller->isInstalled()) {
       if (!$interactive) {
         throw new \RuntimeException(
-          'Drupal Context CLI is not set up yet. Run a command interactively first to complete setup ' .
+          'Drop Context CLI is not set up yet. Run a command interactively first to complete setup ' .
           '(e.g. `context skill:add <skill>`).',
         );
       }

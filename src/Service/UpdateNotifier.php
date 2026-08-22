@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Service;
+namespace DropContext\Service;
 
-use DrupalContext\Application;
+use DropContext\Application;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -30,7 +30,7 @@ final class UpdateNotifier {
     $stderr = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
     $stderr->writeln('');
     $stderr->writeln(sprintf(
-      '<info>A new Drupal Context CLI version is available: %s → %s</info>',
+      '<info>A new Drop Context CLI version is available: %s → %s</info>',
       $currentVersion,
       $latestVersion,
     ));
@@ -49,7 +49,7 @@ final class UpdateNotifier {
       return false;
     }
 
-    foreach (['CI', 'DRUPAL_CONTEXT_NO_UPDATE_CHECK'] as $name) {
+    foreach (['CI', 'DROP_CONTEXT_NO_UPDATE_CHECK'] as $name) {
       $value = getenv($name);
       if (is_string($value) && filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
         return false;

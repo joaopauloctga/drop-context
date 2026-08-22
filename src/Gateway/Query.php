@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway;
+namespace DropContext\Gateway;
 
 /** Immutable filter/sort/page builder for entity_gateway collection requests. */
 final class Query {

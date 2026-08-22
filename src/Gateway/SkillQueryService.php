@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway;
+namespace DropContext\Gateway;
 
-use DrupalContext\Gateway\Dto\SkillLookupResult;
-use DrupalContext\Gateway\Dto\SkillRow;
-use DrupalContext\Gateway\Exception\ModuleNotFoundException;
-use DrupalContext\Gateway\Exception\TagNotFoundException;
-use DrupalContext\Gateway\Repository\ModuleRepository;
-use DrupalContext\Gateway\Repository\ReleaseRepository;
-use DrupalContext\Gateway\Repository\SkillRepository;
-use DrupalContext\Gateway\Repository\TagRepository;
+use DropContext\Gateway\Dto\SkillLookupResult;
+use DropContext\Gateway\Dto\SkillRow;
+use DropContext\Gateway\Exception\ModuleNotFoundException;
+use DropContext\Gateway\Exception\TagNotFoundException;
+use DropContext\Gateway\Repository\ModuleRepository;
+use DropContext\Gateway\Repository\ReleaseRepository;
+use DropContext\Gateway\Repository\SkillRepository;
+use DropContext\Gateway\Repository\TagRepository;
 
 /** Joins skill/module_release/module_details/skill_tag into the queries the CLI needs. */
 class SkillQueryService {

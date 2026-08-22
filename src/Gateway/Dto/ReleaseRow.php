@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway\Dto;
+namespace DropContext\Gateway\Dto;
 
 /** A module_release row. `module` is the bare target UUID of the module_details entity. */
 final readonly class ReleaseRow implements \JsonSerializable {

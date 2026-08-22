@@ -1,11 +1,11 @@
 <?php
 
-namespace DrupalContext\Service;
+namespace DropContext\Service;
 
-use DrupalContext\Application;
-use DrupalContext\ValueObject\AppValueObject;
-use DrupalContext\ValueObject\ProjectValueObject;
-use DrupalContext\ValueObject\RunnableProjectValueObject;
+use DropContext\Application;
+use DropContext\ValueObject\AppValueObject;
+use DropContext\ValueObject\ProjectValueObject;
+use DropContext\ValueObject\RunnableProjectValueObject;
 
 /**
  * Single, shared holder for the loaded app config state.
@@ -16,7 +16,7 @@ use DrupalContext\ValueObject\RunnableProjectValueObject;
  */
 class AppStore {
 
-  const APP_ROOT_DIR = '.drupal-context';
+  const APP_ROOT_DIR = '.drop-context';
 
   const APP_SKILLS_DIR = 'skills';
 

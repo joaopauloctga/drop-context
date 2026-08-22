@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Console;
+namespace DropContext\Console;
 
-use DrupalContext\Console\Exception\NonInteractivePromptException;
+use DropContext\Console\Exception\NonInteractivePromptException;
 use Laravel\Prompts\Prompt;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Output\ConsoleOutput;

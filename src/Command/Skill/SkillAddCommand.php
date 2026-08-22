@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Command\Skill;
+namespace DropContext\Command\Skill;
 
-use DrupalContext\Command\DrupalContextBaseCommand;
-use DrupalContext\Console\Ui;
-use DrupalContext\Gateway\Exception\GatewayException;
-use DrupalContext\Gateway\SkillQueryService;
-use DrupalContext\Service\AppInstaller;
-use DrupalContext\Service\AppStoreService;
-use DrupalContext\Service\CodeAgentsService;
-use DrupalContext\Service\SkillFileWriter;
-use DrupalContext\Service\SkillService;
-use DrupalContext\SkillInstalationStatus;
+use DropContext\Command\DropContextBaseCommand;
+use DropContext\Console\Ui;
+use DropContext\Gateway\Exception\GatewayException;
+use DropContext\Gateway\SkillQueryService;
+use DropContext\Service\AppInstaller;
+use DropContext\Service\AppStoreService;
+use DropContext\Service\CodeAgentsService;
+use DropContext\Service\SkillFileWriter;
+use DropContext\Service\SkillService;
+use DropContext\SkillInstalationStatus;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -22,7 +22,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'skill:add', description: 'Download and install a skill', aliases: ['s:add'])]
-class SkillAddCommand extends DrupalContextBaseCommand {
+class SkillAddCommand extends DropContextBaseCommand {
 
   use ResolvesSkillTrait;
 

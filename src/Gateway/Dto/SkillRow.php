@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway\Dto;
+namespace DropContext\Gateway\Dto;
 
 /** A skill row. Handles the text-field shape duality (bare string vs {value,summary}) and inlined tags/references. */
 final readonly class SkillRow implements \JsonSerializable {

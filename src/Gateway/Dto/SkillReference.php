@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway\Dto;
+namespace DropContext\Gateway\Dto;
 
 /** One inlined skill_reference paragraph: {uuid, referenceFilename, content}. */
 final readonly class SkillReference implements \JsonSerializable {

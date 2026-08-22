@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Command\Module;
+namespace DropContext\Command\Module;
 
-use DrupalContext\Command\DrupalContextBaseCommand;
-use DrupalContext\Console\Ui;
-use DrupalContext\Gateway\Dto\ModuleRow;
-use DrupalContext\Gateway\Exception\GatewayException;
-use DrupalContext\Gateway\Repository\ModuleRepository;
-use DrupalContext\Service\AppInstaller;
+use DropContext\Command\DropContextBaseCommand;
+use DropContext\Console\Ui;
+use DropContext\Gateway\Dto\ModuleRow;
+use DropContext\Gateway\Exception\GatewayException;
+use DropContext\Gateway\Repository\ModuleRepository;
+use DropContext\Service\AppInstaller;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -19,10 +19,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
   name: 'module:list',
-  description: 'List modules documented in the Drupal Context gateway',
+  description: 'List modules documented in the Drop Context gateway',
   aliases: ['m:list', 'module:search'],
 )]
-class ModuleListCommand extends DrupalContextBaseCommand {
+class ModuleListCommand extends DropContextBaseCommand {
 
   public function __construct(
     AppInstaller $appInstaller,

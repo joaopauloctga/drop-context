@@ -1,6 +1,6 @@
 <?php
 
-namespace DrupalContext\Service;
+namespace DropContext\Service;
 
 /**
  * Handle Project store operations

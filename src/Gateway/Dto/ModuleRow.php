@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway\Dto;
+namespace DropContext\Gateway\Dto;
 
 /** A module_details row. */
 final readonly class ModuleRow implements \JsonSerializable {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Source\SkilsSH;
+namespace DropContext\Source\SkilsSH;
 
-use DrupalContext\Gateway\Dto\SkillRow;
-use DrupalContext\Source\SourceInterface;
+use DropContext\Gateway\Dto\SkillRow;
+use DropContext\Source\SourceInterface;
 
 class SkillsSHSource implements SourceInterface {
 

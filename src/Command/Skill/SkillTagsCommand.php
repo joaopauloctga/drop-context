@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Command\Skill;
+namespace DropContext\Command\Skill;
 
-use DrupalContext\Command\DrupalContextBaseCommand;
-use DrupalContext\Console\Ui;
-use DrupalContext\Gateway\Dto\TagRow;
-use DrupalContext\Gateway\Exception\GatewayException;
-use DrupalContext\Gateway\Repository\TagRepository;
-use DrupalContext\Service\AppInstaller;
+use DropContext\Command\DropContextBaseCommand;
+use DropContext\Console\Ui;
+use DropContext\Gateway\Dto\TagRow;
+use DropContext\Gateway\Exception\GatewayException;
+use DropContext\Gateway\Repository\TagRepository;
+use DropContext\Service\AppInstaller;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'skill:tags', description: 'List skill tags available for filtering', aliases: ['s:tags'])]
-class SkillTagsCommand extends DrupalContextBaseCommand {
+class SkillTagsCommand extends DropContextBaseCommand {
 
   public function __construct(
     AppInstaller $appInstaller,

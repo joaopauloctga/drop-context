@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway\Exception;
+namespace DropContext\Gateway\Exception;
 
 /** No module_details entity matches the given machine name. */
 class ModuleNotFoundException extends \RuntimeException {

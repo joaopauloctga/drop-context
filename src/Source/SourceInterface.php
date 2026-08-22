@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Source;
+namespace DropContext\Source;
 
-use DrupalContext\Gateway\Dto\SkillRow;
+use DropContext\Gateway\Dto\SkillRow;
 
 interface SourceInterface {
 

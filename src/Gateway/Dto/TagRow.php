@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway\Dto;
+namespace DropContext\Gateway\Dto;
 
 /** A skill_tag term. `taxonomy_term/skill_tag` rows use `name`; inlined `skillTags` entries use `label`. */
 final readonly class TagRow implements \JsonSerializable {

@@ -1,37 +1,37 @@
 <?php
 
-namespace DrupalContext;
+namespace DropContext;
 
-use DrupalContext\Command\CodeAgents\AddCodeAgent;
-use DrupalContext\Command\CodeAgents\ListCodeAgents;
-use DrupalContext\Command\CodeAgents\RemoveCodeAgent;
-use DrupalContext\Command\CodeAgents\SetPreferableCodeAgents;
-use DrupalContext\Command\Module\ModuleListCommand;
-use DrupalContext\Command\Skill\SkillAddCommand;
-use DrupalContext\Command\Skill\SkillListCommand;
-use DrupalContext\Command\Skill\SkillRemoveCommand;
-use DrupalContext\Command\Skill\SkillShowCommand;
-use DrupalContext\Command\Skill\SkillTagsCommand;
-use DrupalContext\Console\Ui;
-use DrupalContext\Gateway\GatewayClient;
-use DrupalContext\Gateway\GatewayClientInterface;
-use DrupalContext\Gateway\GatewaySettings;
-use DrupalContext\Gateway\Repository\ModuleRepository;
-use DrupalContext\Gateway\Repository\ReleaseRepository;
-use DrupalContext\Gateway\Repository\SkillRepository;
-use DrupalContext\Gateway\Repository\TagRepository;
-use DrupalContext\Gateway\SkillQueryService;
+use DropContext\Command\CodeAgents\AddCodeAgent;
+use DropContext\Command\CodeAgents\ListCodeAgents;
+use DropContext\Command\CodeAgents\RemoveCodeAgent;
+use DropContext\Command\CodeAgents\SetPreferableCodeAgents;
+use DropContext\Command\Module\ModuleListCommand;
+use DropContext\Command\Skill\SkillAddCommand;
+use DropContext\Command\Skill\SkillListCommand;
+use DropContext\Command\Skill\SkillRemoveCommand;
+use DropContext\Command\Skill\SkillShowCommand;
+use DropContext\Command\Skill\SkillTagsCommand;
+use DropContext\Console\Ui;
+use DropContext\Gateway\GatewayClient;
+use DropContext\Gateway\GatewayClientInterface;
+use DropContext\Gateway\GatewaySettings;
+use DropContext\Gateway\Repository\ModuleRepository;
+use DropContext\Gateway\Repository\ReleaseRepository;
+use DropContext\Gateway\Repository\SkillRepository;
+use DropContext\Gateway\Repository\TagRepository;
+use DropContext\Gateway\SkillQueryService;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
-use DrupalContext\Service\AppInstaller;
-use DrupalContext\Service\CodeAgentsService;
-use DrupalContext\Service\SkillFileWriter;
-use DrupalContext\Service\SkillService;
-use DrupalContext\Service\UpdateChecker;
-use DrupalContext\Service\UpdateNotifier;
-use DrupalContext\Source\DrupalContext\DrupalContextSource;
-use DrupalContext\Source\SkilsSH\SkillsSHSource;
-use DrupalContext\Source\SourceManager;
+use DropContext\Service\AppInstaller;
+use DropContext\Service\CodeAgentsService;
+use DropContext\Service\SkillFileWriter;
+use DropContext\Service\SkillService;
+use DropContext\Service\UpdateChecker;
+use DropContext\Service\UpdateNotifier;
+use DropContext\Source\DropContext\DropContextSource;
+use DropContext\Source\SkilsSH\SkillsSHSource;
+use DropContext\Source\SourceManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Filesystem\Filesystem;
@@ -62,7 +62,7 @@ class ContainerFactory {
     $container->autowire(SkillService::class)->setPublic(true);
     $container->autowire(UpdateChecker::class);
     $container->autowire(UpdateNotifier::class)->setPublic(true);
-    $container->autowire(DrupalContextSource::class)->setPublic(true);
+    $container->autowire(DropContextSource::class)->setPublic(true);
     $container->autowire(SkillsSHSource::class)->setPublic(true);
 
     // Console output.

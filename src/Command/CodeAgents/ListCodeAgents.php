@@ -1,19 +1,19 @@
 <?php
 
-namespace DrupalContext\Command\CodeAgents;
+namespace DropContext\Command\CodeAgents;
 
-use DrupalContext\Command\DrupalContextBaseCommand;
-use DrupalContext\Console\Ui;
-use DrupalContext\Service\AppInstaller;
-use DrupalContext\Service\AppStoreService;
-use DrupalContext\Service\CodeAgentsService;
+use DropContext\Command\DropContextBaseCommand;
+use DropContext\Console\Ui;
+use DropContext\Service\AppInstaller;
+use DropContext\Service\AppStoreService;
+use DropContext\Service\CodeAgentsService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'code-agents:list', aliases: ['ca:ls'])]
-class ListCodeAgents extends DrupalContextBaseCommand {
+class ListCodeAgents extends DropContextBaseCommand {
 
   public function __construct(
     AppInstaller $appInstaller,

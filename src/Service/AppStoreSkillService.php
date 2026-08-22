@@ -1,8 +1,8 @@
 <?php
 
-namespace DrupalContext\Service;
+namespace DropContext\Service;
 
-use DrupalContext\ValueObject\SkillValueObject;
+use DropContext\ValueObject\SkillValueObject;
 
 /**
  * Handle Skill store operations.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway\Exception;
+namespace DropContext\Gateway\Exception;
 
 /** No skill_tag term matches the given name. */
 class TagNotFoundException extends \RuntimeException {

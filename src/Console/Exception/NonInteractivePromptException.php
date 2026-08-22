@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Console\Exception;
+namespace DropContext\Console\Exception;
 
 /** Thrown when Ui::select()/multiselect() is invoked in a non-interactive run. */
 class NonInteractivePromptException extends \RuntimeException {

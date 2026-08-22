@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Service;
+namespace DropContext\Service;
 
-use DrupalContext\Application;
+use DropContext\Application;
 use GuzzleHttp\Client as HttpClient;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -167,7 +167,7 @@ final class UpdateChecker {
       'headers' => [
         'Accept' => 'application/json',
         'User-Agent' => sprintf(
-          'Drupal-Context-CLI/%s (+https://dropcontext.dev; mailto=joaopauloctga@gmail.com)',
+          'Drop-Context-CLI/%s (+https://dropcontext.dev; mailto=joaopauloctga@gmail.com)',
           Application::currentVersion(),
         ),
       ],

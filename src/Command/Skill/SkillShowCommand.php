@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Command\Skill;
+namespace DropContext\Command\Skill;
 
-use DrupalContext\Command\DrupalContextBaseCommand;
-use DrupalContext\Console\Ui;
-use DrupalContext\Gateway\Exception\GatewayException;
-use DrupalContext\Gateway\SkillQueryService;
-use DrupalContext\Service\AppInstaller;
+use DropContext\Command\DropContextBaseCommand;
+use DropContext\Console\Ui;
+use DropContext\Gateway\Exception\GatewayException;
+use DropContext\Gateway\SkillQueryService;
+use DropContext\Service\AppInstaller;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -17,7 +17,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'skill:show', description: 'Show details for a skill', aliases: ['s:show'])]
-class SkillShowCommand extends DrupalContextBaseCommand {
+class SkillShowCommand extends DropContextBaseCommand {
 
   use ResolvesSkillTrait;
 

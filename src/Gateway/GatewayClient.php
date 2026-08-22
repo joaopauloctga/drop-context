@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway;
+namespace DropContext\Gateway;
 
-use DrupalContext\Gateway\Dto\CollectionPage;
-use DrupalContext\Gateway\Exception\GatewayAccessException;
-use DrupalContext\Gateway\Exception\GatewayBadRequestException;
-use DrupalContext\Gateway\Exception\GatewayConnectionException;
-use DrupalContext\Gateway\Exception\GatewayException;
-use DrupalContext\Gateway\Exception\GatewayNotFoundException;
+use DropContext\Gateway\Dto\CollectionPage;
+use DropContext\Gateway\Exception\GatewayAccessException;
+use DropContext\Gateway\Exception\GatewayBadRequestException;
+use DropContext\Gateway\Exception\GatewayConnectionException;
+use DropContext\Gateway\Exception\GatewayException;
+use DropContext\Gateway\Exception\GatewayNotFoundException;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ConnectException;
@@ -63,7 +63,7 @@ class GatewayClient implements GatewayClientInterface {
     }
     catch (ConnectException $e) {
       throw new GatewayConnectionException(
-        "Cannot reach {$this->settings->getBaseUrl()} — is the site running / is DRUPAL_CONTEXT_URL correct?",
+        "Cannot reach {$this->settings->getBaseUrl()} — is the site running / is DROP_CONTEXT_URL correct?",
         previous: $e,
       );
     }
@@ -81,7 +81,7 @@ class GatewayClient implements GatewayClientInterface {
     if ($data === null) {
       throw new GatewayException(
         "Unexpected non-JSON response from {$this->settings->getBaseUrl()}{$path} — " .
-        'is DRUPAL_CONTEXT_URL pointing at a Drupal Context site?',
+        'is DROP_CONTEXT_URL pointing at a Drop Context site?',
       );
     }
     return $data;

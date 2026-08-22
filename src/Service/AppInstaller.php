@@ -1,6 +1,6 @@
 <?php
 
-namespace DrupalContext\Service;
+namespace DropContext\Service;
 
 class AppInstaller {
 

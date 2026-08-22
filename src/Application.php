@@ -1,9 +1,9 @@
 <?php
 
-namespace DrupalContext;
+namespace DropContext;
 
 use Composer\InstalledVersions;
-use DrupalContext\Service\UpdateNotifier;
+use DropContext\Service\UpdateNotifier;
 use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputDefinition;
@@ -13,9 +13,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Application extends BaseApplication {
 
-  public const PACKAGE_NAME = 'joaopauloctga/drupal-context-cli';
+  public const PACKAGE_NAME = 'joaopauloctga/drop-context';
 
-  public const NAME = 'Drupal Context CLI';
+  public const NAME = 'Drop Context CLI';
 
   private const FALLBACK_VERSION = 'dev-main';
 

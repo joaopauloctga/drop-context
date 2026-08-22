@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Service;
+namespace DropContext\Service;
 
-use DrupalContext\Gateway\Dto\SkillRow;
+use DropContext\Gateway\Dto\SkillRow;
 use Symfony\Component\Filesystem\Filesystem;
 
 /** Writes a resolved SkillRow to disk as SKILL.md + references/*. */

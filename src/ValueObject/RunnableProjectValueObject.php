@@ -1,6 +1,6 @@
 <?php
 
-namespace DrupalContext\ValueObject;
+namespace DropContext\ValueObject;
 
 class RunnableProjectValueObject {
 

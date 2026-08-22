@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway;
+namespace DropContext\Gateway;
 
-use DrupalContext\Gateway\Dto\CollectionPage;
+use DropContext\Gateway\Dto\CollectionPage;
 
 interface GatewayClientInterface {
 

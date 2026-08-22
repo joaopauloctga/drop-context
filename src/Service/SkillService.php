@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Service;
+namespace DropContext\Service;
 
-use DrupalContext\Console\Ui;
-use DrupalContext\Gateway\Dto\SkillRow;
-use DrupalContext\SkillInstalationStatus;
-use DrupalContext\Source\SourceManager;
-use DrupalContext\ValueObject\SkillValueObject;
+use DropContext\Console\Ui;
+use DropContext\Gateway\Dto\SkillRow;
+use DropContext\SkillInstalationStatus;
+use DropContext\Source\SourceManager;
+use DropContext\ValueObject\SkillValueObject;
 use Symfony\Component\Filesystem\Filesystem;
 
 class SkillService {
@@ -33,7 +33,7 @@ class SkillService {
     return SkillInstalationStatus::EXTERNAL;
   }
 
-  public function installSkill(SkillRow $skill, array $codeAgents = [], string $source = "drupal-context"): SkillValueObject {
+  public function installSkill(SkillRow $skill, array $codeAgents = [], string $source = "drop-context"): SkillValueObject {
     // Always (re)write the cached copy from the already-resolved row, so an
     // override/--force reinstall actually refreshes the content instead of
     // re-symlinking a stale cache dir.
@@ -134,12 +134,12 @@ class SkillService {
     return $this->filesystem->exists($skillDir) ? $skillDir : null;
   }
 
-  public function downloadSkill(SkillRow $skill, string $source = "drupal-context"): string {
+  public function downloadSkill(SkillRow $skill, string $source = "drop-context"): string {
     $sourceHandler = $this->sourceManager->getSourceHandler($source);
     return $sourceHandler->downloadSkill($skill);
   }
 
-  public function listSkills(?string $module = null, string $source = "drupal-context"): array {
+  public function listSkills(?string $module = null, string $source = "drop-context"): array {
     $handler = $this->sourceManager->getSourceHandler($source);
     return $handler->getSkillList($module);
   }

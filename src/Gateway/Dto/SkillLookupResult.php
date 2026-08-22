@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway\Dto;
+namespace DropContext\Gateway\Dto;
 
 /** Result of SkillQueryService::findOne(): exactly one hit, several ambiguous candidates, or fuzzy suggestions. */
 final readonly class SkillLookupResult {

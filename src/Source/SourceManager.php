@@ -1,20 +1,20 @@
 <?php
 
-namespace DrupalContext\Source;
+namespace DropContext\Source;
 
-use DrupalContext\Source\DrupalContext\DrupalContextSource;
-use DrupalContext\Source\SkilsSH\SkillsSHSource;
+use DropContext\Source\DropContext\DropContextSource;
+use DropContext\Source\SkilsSH\SkillsSHSource;
 
 class SourceManager {
 
   public function __construct(
-    private DrupalContextSource $drupalContextSource,
+    private DropContextSource $dropContextSource,
     private SkillsSHSource $skillsSHSource,
   ) {}
 
   public function getSourceHandler(string $source): SourceInterface {
     return match ($source) {
-      'drupal-context' => $this->drupalContextSource,
+      'drop-context' => $this->dropContextSource,
       'skill.sh' => $this->skillsSHSource,
       default => throw new \Exception("Source $source not found"),
     };

@@ -1,6 +1,6 @@
 # drop-context
 
-A CLI that installs **AI agent skills** from a [Drupal Context](https://dropcontext.dev) site into your project. It browses the site's [entity_gateway](https://www.drupal.org/project/entity_gateway) JSON API, downloads a skill's `SKILL.md` + `references/*.md`, caches them in `~/.drupal-context/skills/`, and symlinks them into whatever agent directories your project uses (`.claude`, `.agents`, `.cursor`, `.codex`).
+A CLI that installs **AI agent skills** from a [Drop Context](https://dropcontext.dev) site into your project. It browses the site's [entity_gateway](https://www.drupal.org/project/entity_gateway) JSON API, downloads a skill's `SKILL.md` + `references/*.md`, caches them in `~/.drop-context/skills/`, and symlinks them into whatever agent directories your project uses (`.claude`, `.agents`, `.cursor`, `.codex`).
 
 ```
 $ context skill:add boost-feeds
@@ -20,7 +20,7 @@ $ context skill:add boost-feeds
 ## Installation
 
 ```bash
-composer global require "joaopauloctga/drupal-context-cli:^0"
+composer global require "joaopauloctga/drop-context:^0"
 ```
 
 Make sure Composer's global binary directory is in your `PATH`. You can find it with:
@@ -35,7 +35,7 @@ For example, on macOS or Linux:
 export PATH="$(composer global config bin-dir --absolute):$PATH"
 ```
 
-On the **first run** inside a project, an interactive wizard asks which agent directories you want managed and creates `~/.drupal-context/app.json`. Commands that install/remove skills must run **inside a project containing a `composer.json`** — list/search commands work from anywhere.
+On the **first run** inside a project, an interactive wizard asks which agent directories you want managed and creates `~/.drop-context/app.json`. Commands that install/remove skills must run **inside a project containing a `composer.json`** — list/search commands work from anywhere.
 
 To install the development branch directly from a clone instead, run `composer install` and use `bin/context`.
 
@@ -53,7 +53,7 @@ context skill:remove boost-feeds      # remove it again
 Update the CLI with Composer:
 
 ```bash
-composer global update joaopauloctga/drupal-context-cli
+composer global update joaopauloctga/drop-context
 ```
 
 Once every 24 hours, successful interactive commands make a best-effort request to Packagist and print a notice to stderr when a newer stable version is available. The check has a two-second timeout, is silent on network errors, and does not run for `--json`, non-interactive sessions, or CI.
@@ -62,7 +62,7 @@ Disable it for one command or for an environment:
 
 ```bash
 context skill:list --no-update-check
-DRUPAL_CONTEXT_NO_UPDATE_CHECK=1 context skill:list
+DROP_CONTEXT_NO_UPDATE_CHECK=1 context skill:list
 ```
 
 ## Commands
@@ -77,7 +77,7 @@ DRUPAL_CONTEXT_NO_UPDATE_CHECK=1 context skill:list
 | `module:list [search]` | `m:list`, `module:search` | List Drupal modules that have context/skills |
 | `code-agents:*` | `ca:add`, `ca:ls`, `ca:rm`, `ca:set` | Manage which agent dirs skills are installed into |
 
-Every command also accepts `--json` (machine-readable output, see below) and `-s/--source` (default: `drupal-context`).
+Every command also accepts `--json` (machine-readable output, see below) and `-s/--source` (default: `drop-context`).
 
 ### `skill:list` — list and search skills
 
@@ -113,9 +113,9 @@ context skill:add boost-feeds --force       # reinstall / refresh from the serve
 What it does:
 
 1. Resolves the skill on the gateway (exact title or UUID; ambiguous titles prompt you to pick).
-2. Writes `SKILL.md` + `references/` to `~/.drupal-context/skills/<name>/` (the cache is always refreshed from the server).
+2. Writes `SKILL.md` + `references/` to `~/.drop-context/skills/<name>/` (the cache is always refreshed from the server).
 3. Symlinks that directory into each managed agent dir: `<project>/.claude/skills/<name>`, `<project>/.agents/skills/<name>`, …
-4. Records the install in `~/.drupal-context/app.json`.
+4. Records the install in `~/.drop-context/app.json`.
 
 If the skill already exists you're asked before overriding; non-interactive runs require `--force`.
 
@@ -167,10 +167,10 @@ Errors keep the JSON contract too — e.g. an unresolved skill name prints `{"er
 
 The gateway endpoint is resolved in this order: **environment variable → `app.json` → built-in default**.
 
-| Setting | Env var | `~/.drupal-context/app.json` | Default |
+| Setting | Env var | `~/.drop-context/app.json` | Default |
 |---|---|---|---|
-| Base URL | `DRUPAL_CONTEXT_URL` | `gateway.url` | `https://dropcontext.dev` |
-| TLS verification | `DRUPAL_CONTEXT_TLS_VERIFY` (`0`/`false` to disable) | `gateway.tlsVerify` | on — except `*.ddev.site` hosts (self-signed local certs) |
+| Base URL | `DROP_CONTEXT_URL` | `gateway.url` | `https://dropcontext.dev` |
+| TLS verification | `DROP_CONTEXT_TLS_VERIFY` (`0`/`false` to disable) | `gateway.tlsVerify` | on — except `*.ddev.site` hosts (self-signed local certs) |
 
 Example `app.json` fragment:
 
@@ -186,13 +186,13 @@ Example `app.json` fragment:
 Point at any environment ad hoc:
 
 ```bash
-DRUPAL_CONTEXT_URL=https://dropcontext.dev context skill:list
+DROP_CONTEXT_URL=https://dropcontext.dev context skill:list
 ```
 
 ## Files and state
 
 ```
-~/.drupal-context/
+~/.drop-context/
 ├── app.json           # setup, managed agent dirs, per-project installed skills
 ├── update-check.json  # cached Packagist update check
 └── skills/<name>/     # cached skill content (SKILL.md + references/)
@@ -205,4 +205,8 @@ Removing a skill deletes the symlinks and the registry entry; the cache is only 
 
 ## Sources
 
-`-s/--source` selects where skills come from. `drupal-context` (default) is the entity_gateway API described above; `skill.sh` is reserved but **not implemented yet** — selecting it fails with a clear error.
+`-s/--source` selects where skills come from. `drop-context` (default) is the entity_gateway API described above; `skill.sh` is reserved but **not implemented yet** — selecting it fails with a clear error.
+
+## License
+
+Drop Context is open-source software licensed under the [MIT License](LICENSE).

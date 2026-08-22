@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway\Repository;
+namespace DropContext\Gateway\Repository;
 
-use DrupalContext\Gateway\Dto\SkillRow;
-use DrupalContext\Gateway\GatewayClientInterface;
-use DrupalContext\Gateway\Query;
+use DropContext\Gateway\Dto\SkillRow;
+use DropContext\Gateway\GatewayClientInterface;
+use DropContext\Gateway\Query;
 
 /** Thin typed wrapper over the `drupal_context/skill` resource. */
 class SkillRepository {

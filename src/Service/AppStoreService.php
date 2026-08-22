@@ -1,9 +1,9 @@
 <?php
 
-namespace DrupalContext\Service;
+namespace DropContext\Service;
 
-use DrupalContext\ValueObject\AppValueObject;
-use DrupalContext\ValueObject\RunnableProjectValueObject;
+use DropContext\ValueObject\AppValueObject;
+use DropContext\ValueObject\RunnableProjectValueObject;
 
 /**
  * Facade over the shared AppStore and its sub-stores.

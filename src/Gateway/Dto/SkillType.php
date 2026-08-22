@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway\Dto;
+namespace DropContext\Gateway\Dto;
 
 /** Valid values for the skill's field_skill_type. Validates the --type CLI option. */
 enum SkillType: string {

@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Command\Skill;
+namespace DropContext\Command\Skill;
 
-use DrupalContext\Command\DrupalContextBaseCommand;
-use DrupalContext\Console\Ui;
-use DrupalContext\Service\AppInstaller;
-use DrupalContext\Service\AppStoreService;
-use DrupalContext\Service\CodeAgentsService;
-use DrupalContext\Service\SkillFileWriter;
-use DrupalContext\Service\SkillService;
-use DrupalContext\SkillInstalationStatus;
+use DropContext\Command\DropContextBaseCommand;
+use DropContext\Console\Ui;
+use DropContext\Service\AppInstaller;
+use DropContext\Service\AppStoreService;
+use DropContext\Service\CodeAgentsService;
+use DropContext\Service\SkillFileWriter;
+use DropContext\Service\SkillService;
+use DropContext\SkillInstalationStatus;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -21,7 +21,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 #[AsCommand(name: 'skill:remove', description: 'Remove an installed skill from the project', aliases: ['s:rm'])]
-class SkillRemoveCommand extends DrupalContextBaseCommand {
+class SkillRemoveCommand extends DropContextBaseCommand {
 
   public function __construct(
     AppInstaller $appInstaller,
@@ -49,7 +49,7 @@ class SkillRemoveCommand extends DrupalContextBaseCommand {
     $this->addOption(
       name: 'purge',
       mode: InputOption::VALUE_NONE,
-      description: 'Also delete the cached copy in ~/.drupal-context/skills.',
+      description: 'Also delete the cached copy in ~/.drop-context/skills.',
     );
   }
 

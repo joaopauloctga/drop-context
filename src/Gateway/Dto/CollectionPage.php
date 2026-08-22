@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DrupalContext\Gateway\Dto;
+namespace DropContext\Gateway\Dto;
 
 /** One page of an entity_gateway collection response. */
 final readonly class CollectionPage implements \JsonSerializable {
