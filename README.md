@@ -5,11 +5,11 @@ Drop Context is a CLI for finding and installing AI agent skills from [dropconte
 It supports Claude Code, Codex, Cursor, and other agents that use project-level skill directories.
 
 ```text
-$ drop-context skill:add boost-feeds
+$ drop-context skill:add dc-feeds
 
- Installing skill 'boost-feeds'
+ Installing skill 'dc-feeds'
 
- Skill 'boost-feeds' installed for: .claude, .agents
+ Skill 'dc-feeds' installed for: .claude, .agents
 ```
 
 ## Requirements
@@ -55,9 +55,9 @@ Run commands from a project containing a `composer.json`. On the first command t
 
 ```bash
 drop-context skill:list
-drop-context skill:show boost-feeds
-drop-context skill:add boost-feeds
-drop-context skill:remove boost-feeds
+drop-context skill:show dc-feeds
+drop-context skill:add dc-feeds
+drop-context skill:remove dc-feeds
 ```
 
 Discovery commands such as `skill:list`, `skill:show`, `skill:tags`, and `module:list` can run from any directory.
@@ -94,8 +94,8 @@ Filters can be combined. Supported types are `core_module`, `contrib_module`, `c
 ### Inspect a skill
 
 ```bash
-drop-context skill:show boost-feeds
-drop-context skill:show boost-feeds --content
+drop-context skill:show dc-feeds
+drop-context skill:show dc-feeds --content
 ```
 
 Skills can be selected by name or UUID. When a name is ambiguous, Drop Context offers matching suggestions.
@@ -103,8 +103,8 @@ Skills can be selected by name or UUID. When a name is ambiguous, Drop Context o
 ### Install a skill
 
 ```bash
-drop-context skill:add boost-feeds
-drop-context skill:add boost-feeds --force
+drop-context skill:add dc-feeds
+drop-context skill:add dc-feeds --force
 ```
 
 `--force` reinstalls an existing skill without confirmation. The skill is installed for the coding agents configured in the current project.
@@ -112,8 +112,8 @@ drop-context skill:add boost-feeds --force
 ### Remove a skill
 
 ```bash
-drop-context skill:remove boost-feeds
-drop-context skill:remove boost-feeds --purge
+drop-context skill:remove dc-feeds
+drop-context skill:remove dc-feeds --purge
 ```
 
 `--purge` also removes the downloaded copy. Drop Context asks for confirmation before removing a skill it did not install; use `--force` only when you intend to remove it.
@@ -144,9 +144,9 @@ Use `--json` for scripts and integrations:
 
 ```bash
 drop-context skill:list --type=contrib_module --json | jq '.skills[].title'
-drop-context skill:show boost-feeds --json | jq '.references'
-drop-context skill:add boost-feeds --json
-drop-context skill:remove boost-feeds --json
+drop-context skill:show dc-feeds --json | jq '.references'
+drop-context skill:add dc-feeds --json
+drop-context skill:remove dc-feeds --json
 ```
 
 Machine-readable JSON is written to stdout and commands return a non-zero exit code when they fail.

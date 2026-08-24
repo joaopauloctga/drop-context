@@ -1,6 +1,10 @@
 #!/usr/bin/env php
 <?php
 
+// Deprecations from shared Composer dependencies should not pollute CLI output.
+// Errors and warnings remain enabled so actionable failures are still visible.
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
 require_once $_composer_autoload_path ?? __DIR__ . '/../vendor/autoload.php';
 
 use DropContext\Application;

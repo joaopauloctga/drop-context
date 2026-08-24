@@ -15,7 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /** Base command: wires Ui, the global --json/--source options, and first-run wizard gating. */
-class DropContextBaseCommand extends Command {
+abstract class DropContextBaseCommand extends Command {
 
   public function __construct(
     private readonly AppInstaller $appInstaller,

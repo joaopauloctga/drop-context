@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DropContext\Service;
 
 use DropContext\Gateway\Dto\SkillRow;
+use DropContext\Gateway\FileDownloader;
 use Symfony\Component\Filesystem\Filesystem;
 
 /** Writes a resolved SkillRow to disk as SKILL.md + references/*. */
@@ -12,6 +13,7 @@ class SkillFileWriter {
 
   public function __construct(
     private readonly Filesystem $filesystem,
+    private readonly FileDownloader $fileDownloader,
   ) {}
 
   /** @return string the directory the skill was written to */
@@ -24,25 +26,35 @@ class SkillFileWriter {
     $this->filesystem->mkdir($dir);
     $this->filesystem->dumpFile($dir . DIRECTORY_SEPARATOR . 'SKILL.md', $skill->content);
 
-    if ($skill->references !== []) {
-      if (!$skill->referencesInlined) {
-        throw new \RuntimeException(
-          "Skill '{$skill->title}' has references that are still bare UUIDs — the site is missing the Phase 0 " .
-          'entity_gateway config (paragraph_skill_reference resource + inline field display on field_references).',
-        );
-      }
+    // A misconfigured resource yields reference entries with no download URL,
+    // which used to leave the skill silently short of its references/ dir.
+    if (!$skill->referencesResolved) {
+      throw new \RuntimeException(
+        "Skill '{$skill->title}' has reference files the API did not expose a download URL for — the site's " .
+        'entity_gateway config must render `field_reference_files` with the `file` field output plugin ' .
+        '(entity_gateway.resources_settings:drupal_context_skill.field_display).',
+      );
+    }
 
-      $refsDir = $dir . DIRECTORY_SEPARATOR . 'references';
-      $this->filesystem->mkdir($refsDir);
-      foreach ($skill->references as $reference) {
-        if ($reference->filename === null || $reference->filename === '') {
-          throw new \RuntimeException("Skill '{$skill->title}' has a reference with no filename.");
-        }
-        $this->filesystem->dumpFile(
-          $refsDir . DIRECTORY_SEPARATOR . basename($reference->filename),
-          $reference->content,
-        );
+    $refsDir = $dir . DIRECTORY_SEPARATOR . 'references';
+    // Stale files from a previous install would otherwise survive a reinstall
+    // that renamed or dropped a reference.
+    $this->filesystem->remove($refsDir);
+
+    if ($skill->references === []) {
+      return $dir;
+    }
+
+    $this->filesystem->mkdir($refsDir);
+    foreach ($skill->references as $reference) {
+      $name = $reference->targetName();
+      if ($name === null || $name === '.' || $name === '..') {
+        throw new \RuntimeException("Skill '{$skill->title}' has a reference file with no usable filename.");
       }
+      $this->filesystem->dumpFile(
+        $refsDir . DIRECTORY_SEPARATOR . $name,
+        $this->fileDownloader->download((string) $reference->url),
+      );
     }
 
     return $dir;

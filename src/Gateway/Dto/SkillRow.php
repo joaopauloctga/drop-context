@@ -22,24 +22,27 @@ final readonly class SkillRow implements \JsonSerializable {
     public ?string $moduleReleaseUuid,
     public array $tags,
     public array $references,
-    public bool $referencesInlined,
+    public bool $referencesResolved,
     public ?string $path,
     public ?string $changed,
   ) {}
 
   /** @param array<string, mixed> $data */
   public static function fromArray(array $data): self {
-    $rawReferences = $data['references'] ?? [];
+    // `referenceFiles` is the API key for the skill's `field_reference_files`
+    // file field — a list of {uuid, url, filename, mime, size, description}.
+    $rawReferences = $data['referenceFiles'] ?? [];
     $references = [];
-    $referencesInlined = true;
+    $referencesResolved = true;
     foreach ($rawReferences as $reference) {
-      if (is_array($reference)) {
-        $references[] = SkillReference::fromArray($reference);
+      if (!is_array($reference) || ($reference['url'] ?? '') === '') {
+        // No download URL: the site is exposing field_reference_files through
+        // the wrong entity_gateway field output plugin (it must be `file`),
+        // so every item normalizes to a bare stub or an empty object.
+        $referencesResolved = false;
+        continue;
       }
-      else {
-        // Bare UUID string — the site is missing the Phase 0 inline config.
-        $referencesInlined = false;
-      }
+      $references[] = SkillReference::fromArray($reference);
     }
 
     $rawTags = $data['skillTags'] ?? [];
@@ -59,7 +62,7 @@ final readonly class SkillRow implements \JsonSerializable {
       moduleReleaseUuid: self::refUuid($data['moduleRelease'] ?? null),
       tags: $tags,
       references: $references,
-      referencesInlined: $referencesInlined,
+      referencesResolved: $referencesResolved,
       path: isset($data['path']) ? (string) $data['path'] : null,
       changed: isset($data['changed']) ? (string) $data['changed'] : null,
     );
