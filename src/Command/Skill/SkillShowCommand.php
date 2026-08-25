@@ -87,6 +87,7 @@ class SkillShowCommand extends DropContextBaseCommand {
       ['Release', $col['release']],
       ['Tags', implode(', ', array_map(static fn ($tag) => $tag->name, $skill->tags))],
       ['Private', $skill->private ? 'Yes' : 'No'],
+      ['Version', $skill->version ?? ''],
       ['Changed', $skill->changed ?? ''],
       ['Path', $skill->path ?? ''],
       ['Description', $skill->description ?? ''],

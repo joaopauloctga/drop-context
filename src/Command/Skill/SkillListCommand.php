@@ -13,6 +13,7 @@ use DropContext\Gateway\Exception\ModuleNotFoundException;
 use DropContext\Gateway\Exception\TagNotFoundException;
 use DropContext\Gateway\SkillQueryService;
 use DropContext\Service\AppInstaller;
+use DropContext\Service\SkillService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,15 +22,22 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
   name: 'skill:list',
-  description: 'List skills from the Drop Context gateway',
+  description: 'List skills from the Drop Context gateway, or the ones installed in the project',
   aliases: ['s:list', 'skill:source-list', 's:s-list'],
 )]
 class SkillListCommand extends DropContextBaseCommand {
+
+  private const string FROM_GATEWAY = 'drop-context';
+
+  private const string FROM_LOCAL = 'local';
+
+  private const array SOURCES = [self::FROM_GATEWAY, self::FROM_LOCAL];
 
   public function __construct(
     AppInstaller $appInstaller,
     Ui $ui,
     protected readonly SkillQueryService $skillQueryService,
+    protected readonly SkillService $skillService,
   ) {
     parent::__construct($appInstaller, $ui);
   }
@@ -40,6 +48,14 @@ class SkillListCommand extends DropContextBaseCommand {
 
   public function configure(): void {
     parent::configure();
+    $this->addOption(
+      'from',
+      null,
+      InputOption::VALUE_OPTIONAL,
+      'Where to list from: ' . implode(', ', self::SOURCES),
+      self::FROM_GATEWAY,
+      self::SOURCES,
+    );
     $this->addOption('module', 'm', InputOption::VALUE_OPTIONAL, 'Module machine name to filter skills by');
     $this->addOption('tag', 't', InputOption::VALUE_OPTIONAL, 'Tag name to filter skills by');
     $this->addOption('type', null, InputOption::VALUE_OPTIONAL, 'Skill type to filter by (' . implode(', ', SkillType::values()) . ')');
@@ -47,6 +63,16 @@ class SkillListCommand extends DropContextBaseCommand {
   }
 
   public function execute(InputInterface $input, OutputInterface $output): int {
+    $from = (string) ($input->getOption('from') ?? self::FROM_GATEWAY);
+    if (!in_array($from, self::SOURCES, true)) {
+      $this->ui->error("Unknown --from value '{$from}'. Valid values: " . implode(', ', self::SOURCES));
+      return Command::FAILURE;
+    }
+
+    if ($from === self::FROM_LOCAL) {
+      return $this->listLocal($input);
+    }
+
     $module = $input->getOption('module');
     $tag = $input->getOption('tag');
     $type = $input->getOption('type');
@@ -104,6 +130,7 @@ class SkillListCommand extends DropContextBaseCommand {
       $col = $columns[$skill->uuid] ?? ['module' => '', 'release' => ''];
       return [
         $skill->title,
+        $skill->version ?? '',
         $skill->type ?? '',
         $col['module'],
         $col['release'],
@@ -112,7 +139,51 @@ class SkillListCommand extends DropContextBaseCommand {
       ];
     }, $skills);
 
-    $this->ui->table(['Title', 'Type', 'Module', 'Release', 'Tags', 'Description'], $rows);
+    $this->ui->table(['Title', 'Version', 'Type', 'Module', 'Release', 'Tags', 'Description'], $rows);
+    $this->ui->outro(count($skills) . ' skill(s)');
+
+    return Command::SUCCESS;
+  }
+
+  /** The skills this CLI installed in the current project — no gateway request at all. */
+  private function listLocal(InputInterface $input): int {
+    $ignored = array_keys(array_filter([
+      '--module' => $input->getOption('module'),
+      '--tag' => $input->getOption('tag'),
+      '--type' => $input->getOption('type'),
+      '--search' => $input->getOption('search'),
+    ], static fn ($value) => $value !== null && $value !== ''));
+
+    $this->ui->intro('Listing skills installed in this project');
+    if ($ignored !== []) {
+      $this->ui->note(
+        implode(', ', $ignored) . (count($ignored) === 1 ? ' only applies' : ' only apply') .
+        ' to --from=' . self::FROM_GATEWAY . ' and ' . (count($ignored) === 1 ? 'was' : 'were') . ' ignored.',
+      );
+    }
+
+    $skills = $this->skillService->listInstalledSkills();
+
+    if ($this->ui->isJson()) {
+      $this->ui->json(['count' => count($skills), 'skills' => $skills]);
+      return Command::SUCCESS;
+    }
+
+    if ($skills === []) {
+      $this->ui->note('No skills installed by this CLI in this project.');
+      return Command::SUCCESS;
+    }
+
+    $rows = array_map(static fn (array $skill): array => [
+      $skill['name'],
+      $skill['version'],
+      // An entry whose files are gone still lists, so the user can see what
+      // the registry holds — and clear it with skill:remove-all.
+      $skill['paths'] === [] ? '(no files found)' : implode(', ', array_keys($skill['paths'])),
+      $skill['changed'] !== null ? date('Y-m-d H:i', $skill['changed']) : '',
+    ], $skills);
+
+    $this->ui->table(['Name', 'Version', 'Agents', 'Installed'], $rows);
     $this->ui->outro(count($skills) . ' skill(s)');
 
     return Command::SUCCESS;

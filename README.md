@@ -66,10 +66,11 @@ Discovery commands such as `skill:list`, `skill:show`, `skill:tags`, and `module
 
 | Command | Alias | Description |
 |---|---|---|
-| `skill:list` | `s:list` | List and search available skills |
+| `skill:list` | `s:list` | List and search available skills, or the ones installed here |
 | `skill:show <skill>` | `s:show` | Show details or content for a skill |
 | `skill:add <skill>` | `s:add` | Download and install a skill |
 | `skill:remove <skill>` | `s:rm` | Remove an installed skill |
+| `skill:remove-all` | `s:rm-all` | Remove every skill this CLI installed in the project |
 | `skill:tags` | `s:tags` | List tags available for filtering |
 | `module:list [search]` | `m:list`, `module:search` | Find Drupal modules with available skills |
 | `code-agents:list` | `ca:ls` | List configured coding agents |
@@ -90,6 +91,14 @@ drop-context skill:list --type=contrib_module
 ```
 
 Filters can be combined. Supported types are `core_module`, `contrib_module`, `core_component`, `agent_skill`, `user_skill`, and `other`.
+
+`--from` chooses where the list comes from. The default, `drop-context`, queries the
+site; `local` lists the skills this CLI installed in the current project, without any
+network request — the filters above are gateway-only and are ignored there.
+
+```bash
+drop-context skill:list --from=local
+```
 
 ### Inspect a skill
 
@@ -117,6 +126,17 @@ drop-context skill:remove dc-feeds --purge
 ```
 
 `--purge` also removes the downloaded copy. Drop Context asks for confirmation before removing a skill it did not install; use `--force` only when you intend to remove it.
+
+### Remove every installed skill
+
+```bash
+drop-context skill:remove-all
+drop-context skill:remove-all --force --purge
+```
+
+Removes only the skills this CLI installed in the current project — anything you added
+by hand or with another tool is left alone. It lists what it is about to remove and asks
+for confirmation; `--force` skips the prompt and is required in a non-interactive run.
 
 ### Browse tags and modules
 

@@ -25,6 +25,7 @@ final readonly class SkillRow implements \JsonSerializable {
     public bool $referencesResolved,
     public ?string $path,
     public ?string $changed,
+    public ?string $version,
   ) {}
 
   /** @param array<string, mixed> $data */
@@ -65,6 +66,7 @@ final readonly class SkillRow implements \JsonSerializable {
       referencesResolved: $referencesResolved,
       path: isset($data['path']) ? (string) $data['path'] : null,
       changed: isset($data['changed']) ? (string) $data['changed'] : null,
+      version: isset($data['skillVersion']) ? (string) $data['skillVersion'] : null,
     );
   }
 
@@ -101,6 +103,7 @@ final readonly class SkillRow implements \JsonSerializable {
       'references' => $this->references,
       'path' => $this->path,
       'changed' => $this->changed,
+      'version' => $this->version,
     ];
   }
 

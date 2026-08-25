@@ -51,7 +51,7 @@ class SkillService {
       name: $skillName,
       agents: [],
       path: $projectDir,
-      version: "1.0.0",
+      version: $skill->version ?? '0.1',
     );
 
     $failures = [];
@@ -126,6 +126,33 @@ class SkillService {
       }
     }
     return $paths;
+  }
+
+  /**
+   * The skills this CLI recorded as installed in the current project, paired
+   * with where they currently live on disk.
+   *
+   * Sweeps every *known* code agent dir rather than only the ones present in
+   * the project: a dir may have been deleted since install, and its skill
+   * entry still has to be findable so a sweep can clean it up.
+   *
+   * @return array<int, array{name: string, version: string, changed: int|null, paths: array<string, string>}>
+   */
+  public function listInstalledSkills(): array {
+    $skills = [];
+    foreach ($this->appStoreService->skills->all() as $entry) {
+      $name = (string) ($entry->name ?? '');
+      if ($name === '') {
+        continue;
+      }
+      $skills[] = [
+        'name' => $name,
+        'version' => (string) ($entry->version ?? ''),
+        'changed' => isset($entry->changed) ? (int) $entry->changed : null,
+        'paths' => $this->findInstalledPaths($name, CodeAgentsService::KNOWN_CODE_AGENTS),
+      ];
+    }
+    return $skills;
   }
 
   public function getSkill(string $skillName): ?string {

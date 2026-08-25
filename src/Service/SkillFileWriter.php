@@ -26,14 +26,11 @@ class SkillFileWriter {
     $this->filesystem->mkdir($dir);
     $this->filesystem->dumpFile($dir . DIRECTORY_SEPARATOR . 'SKILL.md', $skill->content);
 
-    // A misconfigured resource yields reference entries with no download URL,
-    // which used to leave the skill silently short of its references/ dir.
+    // Reference entries with no download URL used to leave the skill silently
+    // short of its references/ dir. The cause is server-side, so the message
+    // stays at what the user can act on — never the source's own internals.
     if (!$skill->referencesResolved) {
-      throw new \RuntimeException(
-        "Skill '{$skill->title}' has reference files the API did not expose a download URL for — the site's " .
-        'entity_gateway config must render `field_reference_files` with the `file` field output plugin ' .
-        '(entity_gateway.resources_settings:drupal_context_skill.field_display).',
-      );
+      throw new \RuntimeException("Skill '{$skill->title}' has reference files that could not be downloaded.");
     }
 
     $refsDir = $dir . DIRECTORY_SEPARATOR . 'references';

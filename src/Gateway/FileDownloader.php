@@ -29,14 +29,14 @@ class FileDownloader {
   /** @return string the response body */
   public function download(string $url): string {
     if (!preg_match('#^https?://#i', $url)) {
-      throw new GatewayException("Refusing to download '{$url}' — not an http(s) URL.");
+      throw new GatewayException('Refusing to download a reference file from a non-http(s) URL.');
     }
 
     try {
       $response = $this->httpClient()->request('GET', $url);
     }
     catch (ConnectException $e) {
-      throw new GatewayConnectionException("Cannot reach {$url} — is the site running?", previous: $e);
+      throw new GatewayConnectionException("Cannot reach {$url}.", previous: $e);
     }
     catch (BadResponseException $e) {
       throw new GatewayException(
@@ -46,7 +46,7 @@ class FileDownloader {
       );
     }
     catch (RequestException $e) {
-      throw new GatewayConnectionException("Cannot reach {$url} — {$e->getMessage()}", previous: $e);
+      throw new GatewayConnectionException("Cannot reach {$url}.", previous: $e);
     }
 
     return (string) $response->getBody();

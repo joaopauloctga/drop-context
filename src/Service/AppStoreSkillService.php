@@ -27,6 +27,22 @@ class AppStoreSkillService {
     $this->store->save();
   }
 
+  /**
+   * The current project's skill registry entries.
+   *
+   * Entries are SkillValueObject when attached in this run and stdClass when
+   * read back from app.json — both carry the same public property names.
+   *
+   * @return array<int, object>
+   */
+  public function all(): array {
+    $index = $this->store->getProjectIndex();
+    if ($index === false || $index === null) {
+      return [];
+    }
+    return array_values($this->store->getApp()->projects[$index]->skills ?? []);
+  }
+
   public function isInstalled(string $skillName): bool {
     $skills = $this->store->getApp()->projects[$this->store->getProjectIndex()]->skills;
     return !empty(array_filter($skills, fn($skill) => $skill->name === $skillName));
