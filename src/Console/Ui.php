@@ -158,12 +158,12 @@ class Ui {
    * @return array<int|string>
    * @throws NonInteractivePromptException
    */
-  public function multiselect(string $label, array $options, array $default = []): array {
+  public function multiselect(string $label, array $options, array $default = [], bool $required = true): array {
     if (!$this->interactive) {
       throw new NonInteractivePromptException($label);
     }
     $this->initOutputs();
-    return multiselect($label, $options, $default, required: true);
+    return multiselect($label, $options, $default, required: $required);
   }
 
   /**

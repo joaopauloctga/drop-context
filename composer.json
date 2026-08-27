@@ -16,6 +16,9 @@
     "source": "https://github.com/joaopauloctga/drop-context"
   },
   "config": {
+    "allow-plugins": {
+      "php-http/discovery": false
+    },
     "platform": {
       "php": "8.3.0"
     },
@@ -26,6 +29,9 @@
       "DropContext\\": "src/"
     }
   },
+  "scripts": {
+    "test": "php tests/run.php"
+  },
   "authors": [
     {
       "name": "Joao Paulo Constantino",
@@ -34,10 +40,12 @@
   ],
   "require": {
     "php": "^8.3",
+    "ext-fileinfo": "*",
     "ext-zip": "*",
     "composer-runtime-api": "^2.2",
     "guzzlehttp/guzzle": "^7.0",
     "laravel/prompts": "^0.1.25 || ^0.2 || ^0.3",
+    "mcp/sdk": "^0.7",
     "symfony/config": "^7.0",
     "symfony/console": "^7.0",
     "symfony/dependency-injection": "^7.0",
@@ -45,6 +53,7 @@
     "symfony/yaml": "^7.0"
   },
   "bin": [
-    "bin/drop-context"
+    "bin/drop-context",
+    "bin/drop-context-mcp"
   ]
 }

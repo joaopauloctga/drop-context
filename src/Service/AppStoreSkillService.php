@@ -27,6 +27,26 @@ class AppStoreSkillService {
     $this->store->save();
   }
 
+  /** Replace an installed entry atomically, including when its title changed. */
+  public function replace(string $installedName, SkillValueObject $skill): void {
+    $projectIndex = $this->store->getProjectIndex();
+    if ($projectIndex === false || $projectIndex === null) {
+      throw new \RuntimeException('Run this command inside a registered project.');
+    }
+
+    $skills = $this->store->getApp()->projects[$projectIndex]->skills;
+    $index = array_search($installedName, array_column($skills, 'name'), true);
+    if ($index === false) {
+      $skills[] = $skill;
+    }
+    else {
+      $skills[$index] = $skill;
+    }
+
+    $this->store->getApp()->projects[$projectIndex]->skills = array_values($skills);
+    $this->store->save();
+  }
+
   /**
    * The current project's skill registry entries.
    *

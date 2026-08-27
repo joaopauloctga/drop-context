@@ -8,6 +8,9 @@ services:
     Symfony\Component\Console\Command\Command:
       public: true
       tags: ['console.command']
+    # Collected by McpServerFactory as a !tagged_iterator — see below.
+    DropContext\Mcp\Tool\ToolInterface:
+      tags: ['drop_context.mcp_tool']
 
   Symfony\Component\Filesystem\Filesystem: ~
 
@@ -24,6 +27,49 @@ services:
   # than relying on autowiring's single-implementation fallback.
   DropContext\Gateway\GatewayClientInterface: '@DropContext\Gateway\GatewayClient'
 
+  # The plain (uncached) HTTP seam — used by GatewayClient/FileDownloader by
+  # default, and directly by CatalogStamp/CachingGatewayHttp below for the
+  # requests that must never themselves be cached.
+  DropContext\Gateway\GatewayHttpInterface: '@DropContext\Gateway\GatewayHttp'
+
+  # Same "explicit over the single-implementation fallback" convention as
+  # GatewayClientInterface above.
+  Psr\Log\LoggerInterface: '@DropContext\Mcp\StderrLogger'
+
   # Fetched directly by Application::__construct().
   DropContext\Service\UpdateNotifier:
     public: true
+
+  # --- MCP server: the cached GatewayClient/FileDownloader pair ---
+  #
+  # CatalogRepository (behind ModuleDocsCatalog/CoreLibraryCatalog) is the
+  # only consumer of these two named instances — every other command
+  # (`skill:*`, `module:*`) keeps using the default, uncached GatewayClient/
+  # FileDownloader services above.
+
+  DropContext\Cache\CatalogStamp:
+    arguments:
+      $uncachedHttp: '@DropContext\Gateway\GatewayHttp'
+
+  DropContext\Cache\CachingGatewayHttp:
+    arguments:
+      $inner: '@DropContext\Gateway\GatewayHttp'
+
+  DropContext\Gateway\GatewayClient.mcp:
+    class: DropContext\Gateway\GatewayClient
+    arguments:
+      $http: '@DropContext\Cache\CachingGatewayHttp'
+
+  DropContext\Gateway\FileDownloader.mcp:
+    class: DropContext\Gateway\FileDownloader
+    arguments:
+      $http: '@DropContext\Cache\CachingGatewayHttp'
+
+  DropContext\Catalog\CatalogRepository:
+    arguments:
+      $client: '@DropContext\Gateway\GatewayClient.mcp'
+      $fileDownloader: '@DropContext\Gateway\FileDownloader.mcp'
+
+  DropContext\Mcp\McpServerFactory:
+    arguments:
+      $tools: !tagged_iterator drop_context.mcp_tool

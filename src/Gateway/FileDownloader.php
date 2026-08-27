@@ -4,26 +4,20 @@ declare(strict_types=1);
 
 namespace DropContext\Gateway;
 
-use DropContext\Gateway\Exception\GatewayConnectionException;
 use DropContext\Gateway\Exception\GatewayException;
-use GuzzleHttp\Client as HttpClient;
-use GuzzleHttp\Exception\BadResponseException;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
 
 /**
  * Fetches a file the gateway pointed at by absolute URL.
  *
- * Separate from GatewayClient: that one is bound to the API's base_uri and
- * decodes JSON, while managed-file URLs are absolute, served off the site's
- * public files directory, and return raw bytes.
+ * Separate from GatewayClient: that one decodes JSON, while managed-file URLs
+ * are absolute, served off the site's public files directory, and return raw
+ * bytes. Both are built over GatewayHttpInterface, so they share one
+ * exception-mapping and one cache-decoration point.
  */
 class FileDownloader {
 
-  private ?HttpClient $client = null;
-
   public function __construct(
-    private readonly GatewaySettings $settings,
+    private readonly GatewayHttpInterface $http,
   ) {}
 
   /** @return string the response body */
@@ -32,31 +26,7 @@ class FileDownloader {
       throw new GatewayException('Refusing to download a reference file from a non-http(s) URL.');
     }
 
-    try {
-      $response = $this->httpClient()->request('GET', $url);
-    }
-    catch (ConnectException $e) {
-      throw new GatewayConnectionException("Cannot reach {$url}.", previous: $e);
-    }
-    catch (BadResponseException $e) {
-      throw new GatewayException(
-        "Download of {$url} failed with HTTP {$e->getResponse()->getStatusCode()}.",
-        $e->getResponse()->getStatusCode(),
-        $e,
-      );
-    }
-    catch (RequestException $e) {
-      throw new GatewayConnectionException("Cannot reach {$url}.", previous: $e);
-    }
-
-    return (string) $response->getBody();
-  }
-
-  private function httpClient(): HttpClient {
-    return $this->client ??= new HttpClient([
-      'timeout' => 30,
-      'verify' => $this->settings->tlsVerify(),
-    ]);
+    return $this->http->get($url)->body;
   }
 
 }

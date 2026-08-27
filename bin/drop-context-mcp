@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+
+// Deprecations from shared Composer dependencies should not pollute the
+// stdio stream. Errors and warnings remain enabled and are sent to stderr
+// (never stdout — that would corrupt the JSON-RPC transport).
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+ini_set('display_errors', 'stderr');
+
+require_once $_composer_autoload_path ?? __DIR__ . '/../vendor/autoload.php';
+
+use DropContext\Mcp\McpServerApplication;
+
+$app = new McpServerApplication();
+$app->run();

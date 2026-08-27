@@ -11,6 +11,7 @@ class SkillValueObject {
     public string $version,
     public ?int $created = null,
     public ?int $changed = null,
+    public ?string $uuid = null,
   ) {
     $now = time();
     $this->created = $created ?? $now;

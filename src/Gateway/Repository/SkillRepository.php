@@ -57,6 +57,31 @@ class SkillRepository {
     return $this->fetch((new Query())->filter('uuid', $uuid));
   }
 
+  /** @param string[] $uuids @return array<string, SkillRow> keyed by uuid */
+  public function findByUuids(array $uuids): array {
+    $rows = [];
+    foreach (array_chunk(array_values(array_unique($uuids)), Query::MAX_PER_PAGE) as $chunk) {
+      foreach ($this->fetch((new Query())->filter('uuid', $chunk, 'in')) as $skill) {
+        $rows[$skill->uuid] = $skill;
+      }
+    }
+    return $rows;
+  }
+
+  /**
+   * @param string[] $titles
+   * @return array<string, SkillRow[]> keyed by exact title
+   */
+  public function findByTitles(array $titles): array {
+    $rows = [];
+    foreach (array_chunk(array_values(array_unique($titles)), Query::MAX_PER_PAGE) as $chunk) {
+      foreach ($this->fetch((new Query())->filter('title', $chunk, 'in')) as $skill) {
+        $rows[$skill->title][] = $skill;
+      }
+    }
+    return $rows;
+  }
+
   /** Fuzzy "did you mean" candidates. @return SkillRow[] */
   public function suggest(string $text, int $limit = 5): array {
     $query = (new Query())->filter('title', $text, 'contains')->perPage($limit);

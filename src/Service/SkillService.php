@@ -52,6 +52,7 @@ class SkillService {
       agents: [],
       path: $projectDir,
       version: $skill->version ?? '0.1',
+      uuid: $skill->uuid !== '' ? $skill->uuid : null,
     );
 
     $failures = [];
@@ -136,7 +137,7 @@ class SkillService {
    * the project: a dir may have been deleted since install, and its skill
    * entry still has to be findable so a sweep can clean it up.
    *
-   * @return array<int, array{name: string, version: string, changed: int|null, paths: array<string, string>}>
+   * @return array<int, array{name: string, uuid: string|null, version: string, changed: int|null, paths: array<string, string>}>
    */
   public function listInstalledSkills(): array {
     $skills = [];
@@ -147,6 +148,7 @@ class SkillService {
       }
       $skills[] = [
         'name' => $name,
+        'uuid' => isset($entry->uuid) && $entry->uuid !== '' ? (string) $entry->uuid : null,
         'version' => (string) ($entry->version ?? ''),
         'changed' => isset($entry->changed) ? (int) $entry->changed : null,
         'paths' => $this->findInstalledPaths($name, CodeAgentsService::KNOWN_CODE_AGENTS),

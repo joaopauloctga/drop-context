@@ -14,7 +14,7 @@ $ drop-context skill:add dc-feeds
 
 ## Requirements
 
-- PHP 8.3 or newer with `ext-zip`
+- PHP 8.3 or newer with `ext-zip` and `ext-fileinfo`
 - Composer
 
 ## Installation
@@ -57,6 +57,7 @@ Run commands from a project containing a `composer.json`. On the first command t
 drop-context skill:list
 drop-context skill:show dc-feeds
 drop-context skill:add dc-feeds
+drop-context skill:status
 drop-context skill:remove dc-feeds
 ```
 
@@ -69,6 +70,7 @@ Discovery commands such as `skill:list`, `skill:show`, `skill:tags`, and `module
 | `skill:list` | `s:list` | List and search available skills, or the ones installed here |
 | `skill:show <skill>` | `s:show` | Show details or content for a skill |
 | `skill:add <skill>` | `s:add` | Download and install a skill |
+| `skill:status` | `s:status` | Check installed skills and choose available updates |
 | `skill:remove <skill>` | `s:rm` | Remove an installed skill |
 | `skill:remove-all` | `s:rm-all` | Remove every skill this CLI installed in the project |
 | `skill:tags` | `s:tags` | List tags available for filtering |
@@ -77,6 +79,8 @@ Discovery commands such as `skill:list`, `skill:show`, `skill:tags`, and `module
 | `code-agents:add <agent>` | `ca:add` | Add a coding agent |
 | `code-agents:remove <agent>` | `ca:rm` | Remove a coding agent |
 | `code-agents:set-preferable <agents>` | `ca:set` | Replace the preferred coding agents |
+| `mcp:serve` | | Start the MCP server over stdio (see [MCP server](#mcp-server)) |
+| `cache:clear` | | Clear the gateway response cache used by the MCP server |
 
 Run `drop-context <command> --help` to see every argument and option.
 
@@ -118,6 +122,17 @@ drop-context skill:add dc-feeds --force
 
 `--force` reinstalls an existing skill without confirmation. The skill is installed for the coding agents configured in the current project.
 
+### Check for skill updates
+
+```bash
+drop-context skill:status
+```
+
+The command compares the versions installed in the current project with the latest
+versions from Drop Context. When updates are available, every update is selected by
+default and you can uncheck any skill you do not want to update. In `--json` or other
+non-interactive runs, the command only reports status and does not modify the project.
+
 ### Remove a skill
 
 ```bash
@@ -157,6 +172,65 @@ drop-context code-agents:set-preferable .claude,.agents
 ```
 
 Supported directories are `.claude`, `.agents`, `.cursor`, and `.codex`.
+
+## MCP server
+
+Composer installs a second binary alongside `drop-context`: `drop-context-mcp`, an [MCP](https://modelcontextprotocol.io) server that talks stdio and reads the same Drop Context catalog — module and Drupal core documentation, plus core framework libraries. Running it with no arguments starts the server directly (it is also available as `drop-context mcp:serve`, e.g. for a client that always calls the main binary):
+
+```bash
+drop-context-mcp
+```
+
+Add it to Claude Code:
+
+```bash
+claude mcp add drop-context --scope project -- drop-context-mcp
+```
+
+Or configure it directly in an `mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "drop-context": {
+      "command": "drop-context-mcp"
+    }
+  }
+}
+```
+
+### Tools
+
+| Tool | Purpose |
+|---|---|
+| `list_modules` | Find a module's exact machine name, optionally filtered by a query substring |
+| `get_module` | A module's metadata, documented releases, that release's notes, and its doc index |
+| `get_doc` | Read one module documentation file's raw Markdown |
+| `list_core_libraries` | Find a Drupal core framework library's `metadata.id`, optionally filtered |
+| `get_core_library` | A core library's metadata and its doc index |
+| `get_core_library_doc` | Read one core-library documentation file's raw Markdown |
+
+The usual flow is discover, then overview, then read: `list_modules` (or `list_core_libraries`) to find what you're looking for, `get_module`/`get_core_library` to see what's documented for it, `get_doc`/`get_core_library_doc` to read one file at a time. An unrecognized module, release, doc id, or library reference is a clear, actionable error — never a silent fallback.
+
+### Environment variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `DROP_CONTEXT_URL` | `https://dropcontext.dev` | The gateway base URL |
+| `DROP_CONTEXT_TLS_VERIFY` | on, except `*.ddev.site` hosts | Verify the gateway's TLS certificate |
+| `DROP_CONTEXT_CACHE` | on | Set to `0` to disable the on-disk response cache (an in-process cache still applies for the life of one server session) |
+| `DROP_CONTEXT_CACHE_TTL` | `86400` (24h) | Per-entry cache safety-net, in seconds |
+| `DROP_CONTEXT_STAMP_TTL` | `300` (5m) | How often the server checks whether the catalog changed |
+| `DROP_CONTEXT_MCP_LOG` | `warning` | Log verbosity to stderr: `debug`, `info`, `warning`, or `error` |
+
+### Cache
+
+Every gateway response the server reads is cached to `~/.drop-context/cache/gateway/`, namespaced per `DROP_CONTEXT_URL` so switching between a local site and production never mixes results. A background check (`DROP_CONTEXT_STAMP_TTL`) detects when the catalog actually changed and clears the cache automatically; `DROP_CONTEXT_CACHE_TTL` is the safety-net expiry underneath that. Clear it by hand with:
+
+```bash
+drop-context cache:clear
+drop-context cache:clear --url=https://dropcontext.dev
+```
 
 ## JSON output
 
