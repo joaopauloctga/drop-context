@@ -46,6 +46,12 @@ abstract class DropContextBaseCommand extends Command {
       mode: InputOption::VALUE_NONE,
       description: 'Print machine-readable JSON on stdout; errors go to stderr.',
     );
+    $this->addOption(
+      name: 'code-agents',
+      mode: InputOption::VALUE_OPTIONAL,
+      description: 'Comma-separated code agent dirs to install on first run in a non-interactive session ' .
+        '(e.g. .claude,.agents). A leading dot is added when missing.',
+    );
   }
 
   protected function initialize(InputInterface $input, OutputInterface $output): void {
@@ -59,10 +65,15 @@ abstract class DropContextBaseCommand extends Command {
 
     if (!$this->appInstaller->isInstalled()) {
       if (!$interactive) {
-        throw new \RuntimeException(
-          'Drop Context CLI is not set up yet. Run a command interactively first to complete setup ' .
-          '(e.g. `drop-context skill:add <skill>`).',
-        );
+        $codeAgents = self::parseCodeAgentsOption($input->getOption('code-agents'));
+        if ($codeAgents === null) {
+          throw new \RuntimeException(
+            'Drop Context CLI is not set up yet. Run a command interactively first to complete setup ' .
+            '(e.g. `drop-context skill:add <skill>`), or pass --code-agents=.claude,.agents to set up non-interactively.',
+          );
+        }
+        $this->appInstaller->install($codeAgents);
+        return;
       }
       $this->runSetupWizard();
       return;
@@ -92,6 +103,23 @@ abstract class DropContextBaseCommand extends Command {
     );
 
     $this->appInstaller->install($selected);
+  }
+
+  /** Parses `--code-agents=.claude,.agents` into a code-agent list, or null when the option is unusable. */
+  private static function parseCodeAgentsOption(mixed $option): ?array {
+    if (!is_string($option) || trim($option) === '') {
+      return null;
+    }
+
+    $agents = array_values(array_filter(array_map(
+      static function (string $agent): string {
+        $agent = trim($agent);
+        return $agent === '' || str_starts_with($agent, '.') ? $agent : '.' . $agent;
+      },
+      explode(',', $option),
+    ), static fn (string $agent): bool => $agent !== ''));
+
+    return $agents === [] ? null : $agents;
   }
 
 }

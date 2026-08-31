@@ -288,14 +288,7 @@ function fakeDocRow(string $uuid, string $releaseUuid, string $releaseLabel, str
   ];
 }
 
-// A stub AppStoreService that is never actually touched: every test below
-// pins DROP_CONTEXT_URL, which GatewaySettings::getBaseUrl() checks first.
-$appStoreServiceStub = new class extends AppStoreService {
-  public function __construct() {}
-};
-putenv('DROP_CONTEXT_URL=https://example.test');
-putenv('DROP_CONTEXT_TLS_VERIFY=1');
-$gatewaySettings = new GatewaySettings($appStoreServiceStub);
+$gatewaySettings = new GatewaySettings();
 
 // --- ReleaseVersion ---
 
@@ -403,7 +396,7 @@ assertSameValue('1.0.0', $summary['default_release'], 'moduleSummary() reports t
 
 $details = $moduleDocsCatalog->moduleDetails($foundModule, $default);
 assertSameValue('Release 1.0.0 summary.', $details['description'], "moduleDetails() prefers the release's own description over the module's");
-assertSameValue('https://example.test/context/widget_test', $details['url'], 'moduleDetails() builds an absolute URL from GatewaySettings + path');
+assertSameValue('https://dropcontext.dev/context/widget_test', $details['url'], 'moduleDetails() builds an absolute URL from GatewaySettings + path');
 assertSameValue('https://www.drupal.org/project/widget_test', $details['drupal_org_url'], 'a non-core module gets a drupal.org URL');
 assertSameValue(['Fixtures'], $details['categories'], 'moduleDetails() reads category labels off the inlined uuid_label stubs');
 
@@ -497,7 +490,7 @@ assertSameValue(null, $ambiguous['match'], 'an alias shared by two libraries is 
 assertSameValue(2, count($ambiguous['candidates']), 'both libraries sharing the "Ajax" alias come back as candidates');
 
 $libDetails = $coreLibraryCatalog->libraryDetails($ajaxLibraryRow);
-assertSameValue('https://example.test/context/core-lib/fixtureajax', $libDetails['url'], 'libraryDetails() builds an absolute URL');
+assertSameValue('https://dropcontext.dev/context/core-lib/fixtureajax', $libDetails['url'], 'libraryDetails() builds an absolute URL');
 
 $libToc = $coreLibraryCatalog->tableOfContents($ajaxLibraryRow);
 assertSameValue(['summary', 'architecture', 'topics/dialogs'], array_column($libToc, 'id'), 'tableOfContents() recovers the topics/ prefix from the file URL, not just its basename');
@@ -714,3 +707,80 @@ assertSameValue(0, $probeCalls9, 'DROP_CONTEXT_CACHE=0 skips the stamp probe ent
 putenv('DROP_CONTEXT_CACHE');
 
 fwrite(STDOUT, "CatalogStamp tests passed.\n");
+
+// --- AgentRow + AgentFileWriter ---
+
+use DropContext\Gateway\Dto\AgentRow;
+use DropContext\Service\AgentFileWriter;
+use Symfony\Component\Filesystem\Filesystem;
+
+$agentPayload = [
+  'uuid' => 'agent-uuid-1',
+  'title' => 'my-drupal-agent',
+  'machineName' => 'drop-view-developer',
+  'isDropContext' => true,
+  'status' => true,
+  'content' => [
+    'value' => "# My Drupal Agent\n\nRules here.\n",
+    'summary' => 'A helpful AGENTS.md',
+  ],
+  'agentPrivate' => false,
+  'modules' => [
+    ['uuid' => 'mod-1', 'machineName' => 'feeds', 'title' => 'Feeds'],
+  ],
+  'relatedSkills' => [
+    ['uuid' => 'skill-1', 'label' => 'dc-feeds'],
+  ],
+  'relatedCoreLibraries' => [],
+  'referenceFiles' => [
+    [
+      'uuid' => 'file-1',
+      'filename' => 'extra.md',
+      'url' => 'https://example.test/extra.md',
+      'mime' => 'text/markdown',
+      'size' => 12,
+      'description' => 'Extra',
+    ],
+  ],
+  'path' => '/agents/my-drupal-agent',
+  'changed' => '2026-08-29T12:00:00+00:00',
+  'agentVersion' => '0.2',
+];
+
+$agentRow = AgentRow::fromArray($agentPayload);
+assertSameValue('agent-uuid-1', $agentRow->uuid, 'agent uuid');
+assertSameValue('my-drupal-agent', $agentRow->title, 'agent title');
+assertSameValue('drop-view-developer', $agentRow->machineName, 'agent machine name');
+assertSameValue(true, $agentRow->isDropContext, 'agent is drop context');
+assertSameValue('drop-view-developer', $agentRow->installKey(), 'agent install key');
+assertSameValue('drop-view-developer', AgentFileWriter::cacheDirName($agentRow->installKey()), 'agent cache dir');
+assertSameValue('joaopauloc--views-developer', AgentFileWriter::cacheDirName('joaopauloc:views-developer'), 'user agent cache dir');
+assertSameValue('A helpful AGENTS.md', $agentRow->description, 'agent description from content.summary');
+assertSameValue("# My Drupal Agent\n\nRules here.\n", $agentRow->content, 'agent content value');
+assertSameValue(false, $agentRow->private, 'agent private');
+assertSameValue('0.2', $agentRow->version, 'agent version');
+assertSameValue(1, count($agentRow->modules), 'agent modules count');
+assertSameValue('feeds', $agentRow->modules[0]['machineName'] ?? null, 'agent module machine name');
+assertSameValue(1, count($agentRow->relatedSkills), 'related skills');
+assertSameValue(true, $agentRow->referencesResolved, 'references resolved');
+
+$tmpRoot = sys_get_temp_dir() . '/drop-context-agent-test-' . bin2hex(random_bytes(4));
+$fs = new Filesystem();
+$fs->mkdir($tmpRoot);
+
+$fileDownloader = new class extends FileDownloader {
+  public function __construct() {}
+  public function download(string $url): string {
+    return "# Extra\n";
+  }
+};
+
+$writer = new AgentFileWriter($fs, $fileDownloader);
+$written = $writer->write($agentRow, $tmpRoot);
+assertSameValue(true, is_dir($written), 'agent cache dir created');
+assertSameValue(true, is_file($written . '/AGENTS.md'), 'AGENTS.md written');
+assertSameValue("# My Drupal Agent\n\nRules here.\n", file_get_contents($written . '/AGENTS.md'), 'AGENTS.md contents');
+assertSameValue(true, is_file($written . '/references/extra.md'), 'reference file written');
+
+$fs->remove($tmpRoot);
+fwrite(STDOUT, "AgentRow/AgentFileWriter tests passed.\n");

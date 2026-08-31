@@ -1,8 +1,8 @@
 # Drop Context
 
-Drop Context is a CLI for finding and installing AI agent skills from [dropcontext.dev](https://dropcontext.dev) into your projects.
+Drop Context is a CLI for finding and installing AI agent skills and AGENTS.md files from [dropcontext.dev](https://dropcontext.dev) into your projects.
 
-It supports Claude Code, Codex, Cursor, and other agents that use project-level skill directories.
+It supports Claude Code, Codex, Cursor, and other agents that use project-level skill directories and root `AGENTS.md` files.
 
 ```text
 $ drop-context skill:add dc-feeds
@@ -59,9 +59,14 @@ drop-context skill:show dc-feeds
 drop-context skill:add dc-feeds
 drop-context skill:status
 drop-context skill:remove dc-feeds
+drop-context agent:list
+drop-context agent:add drop-view-developer
+drop-context agent:add 'joaopauloc:views-developer'
 ```
 
-Discovery commands such as `skill:list`, `skill:show`, `skill:tags`, and `module:list` can run from any directory.
+Discovery commands such as `skill:list`, `skill:show`, `skill:tags`, `agent:list`, `agent:show`, and `module:list` can run from any directory.
+
+`agent:*` installs catalog AGENTS.md files. `code-agents:*` only manages which coding-agent directories (`.claude`, `.cursor`, …) receive skill symlinks — the two are unrelated.
 
 ## Commands
 
@@ -74,8 +79,13 @@ Discovery commands such as `skill:list`, `skill:show`, `skill:tags`, and `module
 | `skill:remove <skill>` | `s:rm` | Remove an installed skill |
 | `skill:remove-all` | `s:rm-all` | Remove every skill this CLI installed in the project |
 | `skill:tags` | `s:tags` | List tags available for filtering |
+| `agent:list` | `a:list` | List and search available AGENTS.md agents, or the ones installed here |
+| `agent:show <agent>` | `a:show` | Show details or content for an agent |
+| `agent:add <agent>` | `a:add` | Download and install an agent as project-root `AGENTS.md` |
+| `agent:status` | `a:status` | Check installed agents and choose available updates |
+| `agent:remove <agent>` | `a:rm` | Remove an installed agent |
 | `module:list [search]` | `m:list`, `module:search` | Find Drupal modules with available skills |
-| `code-agents:list` | `ca:ls` | List configured coding agents |
+| `code-agents:list` | `ca:ls` | List configured coding-agent directories (`.claude`, `.cursor`, …) |
 | `code-agents:add <agent>` | `ca:add` | Add a coding agent |
 | `code-agents:remove <agent>` | `ca:rm` | Remove a coding agent |
 | `code-agents:set-preferable <agents>` | `ca:set` | Replace the preferred coding agents |
@@ -162,6 +172,22 @@ drop-context module:list feed
 drop-context module:list "exposed" --title
 ```
 
+### Find and install agents (AGENTS.md)
+
+```bash
+drop-context agent:list
+drop-context agent:list --search=drupal
+drop-context agent:list --module=feeds
+drop-context agent:show drop-view-developer
+drop-context agent:show drop-view-developer --content
+drop-context agent:add drop-view-developer
+drop-context agent:add 'joaopauloc:views-developer'
+drop-context agent:status
+drop-context agent:remove drop-view-developer --purge
+```
+
+Agents are catalog AGENTS.md files. Install by **machine name**: official Drop Context agents use a bare slug (`drop-view-developer`); user-authored agents use `{username}:{slug}` (`joaopauloc:views-developer`). `agent:add` caches them under `~/.drop-context/agents/` and symlinks `AGENTS.md` at the project root (one active file). This is separate from `code-agents:*`, which only manages coding-agent directories.
+
 ### Configure coding agents
 
 ```bash
@@ -216,8 +242,6 @@ The usual flow is discover, then overview, then read: `list_modules` (or `list_c
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `DROP_CONTEXT_URL` | `https://dropcontext.dev` | The gateway base URL |
-| `DROP_CONTEXT_TLS_VERIFY` | on, except `*.ddev.site` hosts | Verify the gateway's TLS certificate |
 | `DROP_CONTEXT_CACHE` | on | Set to `0` to disable the on-disk response cache (an in-process cache still applies for the life of one server session) |
 | `DROP_CONTEXT_CACHE_TTL` | `86400` (24h) | Per-entry cache safety-net, in seconds |
 | `DROP_CONTEXT_STAMP_TTL` | `300` (5m) | How often the server checks whether the catalog changed |
@@ -225,7 +249,7 @@ The usual flow is discover, then overview, then read: `list_modules` (or `list_c
 
 ### Cache
 
-Every gateway response the server reads is cached to `~/.drop-context/cache/gateway/`, namespaced per `DROP_CONTEXT_URL` so switching between a local site and production never mixes results. A background check (`DROP_CONTEXT_STAMP_TTL`) detects when the catalog actually changed and clears the cache automatically; `DROP_CONTEXT_CACHE_TTL` is the safety-net expiry underneath that. Clear it by hand with:
+Every gateway response the server reads is cached to `~/.drop-context/cache/gateway/`. A background check (`DROP_CONTEXT_STAMP_TTL`) detects when the catalog actually changed and clears the cache automatically; `DROP_CONTEXT_CACHE_TTL` is the safety-net expiry underneath that. Clear it by hand with:
 
 ```bash
 drop-context cache:clear

@@ -39,6 +39,19 @@ class ModuleRepository {
     return $rows;
   }
 
+  /** @param string[] $machineNames @return array<string, ModuleRow> keyed by machine name */
+  public function findByMachineNames(array $machineNames): array {
+    $rows = [];
+    foreach (array_chunk(array_values(array_unique($machineNames)), 50) as $chunk) {
+      $query = (new Query())->filter('machineName', $chunk, 'in');
+      foreach ($this->client->iterate(self::ENTITY_TYPE, self::BUNDLE, $query) as $row) {
+        $module = ModuleRow::fromArray($row);
+        $rows[$module->machineName] = $module;
+      }
+    }
+    return $rows;
+  }
+
   /** @param string[] $uuids @return array<string, ModuleRow> keyed by uuid */
   public function findByUuids(array $uuids): array {
     $rows = [];

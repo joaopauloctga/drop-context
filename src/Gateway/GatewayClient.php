@@ -58,8 +58,7 @@ class GatewayClient implements GatewayClientInterface {
     $data = self::decode($result->body);
     if ($data === null) {
       throw new GatewayException(
-        "Unexpected non-JSON response from {$this->settings->getBaseUrl()}{$path} — " .
-        'is DROP_CONTEXT_URL pointing at a Drop Context site?',
+        "Unexpected non-JSON response from {$this->settings->getBaseUrl()}{$path}",
       );
     }
     return $data;

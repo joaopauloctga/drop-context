@@ -39,7 +39,7 @@ final class CacheClearCommand extends DropContextBaseCommand {
     $this->addOption(
       name: 'url',
       mode: InputOption::VALUE_REQUIRED,
-      description: 'Only clear the cache namespace for this gateway base URL (matches DROP_CONTEXT_URL verbatim, trailing slash ignored). Defaults to clearing every namespace.',
+      description: 'Only clear the cache namespace for this gateway base URL (trailing slash ignored). Defaults to clearing every namespace.',
     );
   }
 

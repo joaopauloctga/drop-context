@@ -23,7 +23,8 @@ use DropContext\Gateway\GatewaySettings;
  * because loading is free there (an entity query) but would cost one extra
  * gateway request per release here. A release with no docs simply reports an
  * empty `docs: []` from get_module/get_doc's "available doc ids" rather than
- * being hidden from `available_releases` — see `ai/ROADMAP.md`.
+ * being hidden from `available_releases`. Accepted for now; revisit if a
+ * doc-less release ever actually shows up in practice.
  */
 final class ModuleDocsCatalog {
 

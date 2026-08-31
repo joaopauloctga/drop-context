@@ -4,45 +4,25 @@ declare(strict_types=1);
 
 namespace DropContext\Gateway;
 
-use DropContext\Service\AppStoreService;
-
-/** Resolves the gateway base URL and TLS verification policy: env → app.json → default. */
+/**
+ * The gateway defaults to Drop Context's production site.
+ *
+ * `DROP_CONTEXT_URL` overrides the base URL and `DROP_CONTEXT_TLS_VERIFY=0`
+ * disables TLS verification — both already referenced by `.mcp.json` files
+ * in the wild, wired here so they actually take effect.
+ */
 class GatewaySettings {
 
   final public const string DEFAULT_BASE_URL = 'https://dropcontext.dev';
 
-  public function __construct(
-    private readonly AppStoreService $appStoreService,
-  ) {}
-
   public function getBaseUrl(): string {
-    $env = getenv('DROP_CONTEXT_URL');
-    if (is_string($env) && $env !== '') {
-      return rtrim($env, '/');
-    }
-
-    $configured = $this->appStoreService->getAppConfigFile()->gateway?->url ?? null;
-    if (is_string($configured) && $configured !== '') {
-      return rtrim($configured, '/');
-    }
-
-    return self::DEFAULT_BASE_URL;
+    $url = getenv('DROP_CONTEXT_URL');
+    return is_string($url) && trim($url) !== '' ? rtrim($url, '/') : self::DEFAULT_BASE_URL;
   }
 
-  /** Verify on by default, except for `.ddev.site` hosts (self-signed local certs). */
   public function tlsVerify(): bool {
-    $env = getenv('DROP_CONTEXT_TLS_VERIFY');
-    if (is_string($env) && $env !== '') {
-      return filter_var($env, FILTER_VALIDATE_BOOLEAN);
-    }
-
-    $configured = $this->appStoreService->getAppConfigFile()->gateway?->tlsVerify ?? null;
-    if ($configured !== null) {
-      return (bool) $configured;
-    }
-
-    $host = parse_url($this->getBaseUrl(), PHP_URL_HOST) ?: '';
-    return !str_ends_with($host, '.ddev.site');
+    $verify = getenv('DROP_CONTEXT_TLS_VERIFY');
+    return $verify !== '0';
   }
 
 }

@@ -39,7 +39,7 @@ class GatewayHttp implements GatewayHttpInterface {
     }
     catch (ConnectException $e) {
       throw new GatewayConnectionException(
-        "Cannot reach {$url} — is the site running / is DROP_CONTEXT_URL correct?",
+        "Cannot reach {$url} — is dropcontext.dev reachable?",
         previous: $e,
       );
     }

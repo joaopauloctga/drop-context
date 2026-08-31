@@ -13,6 +13,7 @@ class AppStoreService {
   public function __construct(
     protected AppStore $store,
     public AppStoreSkillService $skills,
+    public AppStoreAgentService $agents,
     public AppStoreProjectService $projects,
   ) {}
 

@@ -29,6 +29,24 @@ class ReleaseRepository {
     return $rows;
   }
 
+  /**
+   * @param string[] $moduleUuids
+   * @return array<string, ReleaseRow[]> keyed by module uuid
+   */
+  public function findByModuleUuids(array $moduleUuids): array {
+    $rows = [];
+    foreach (array_chunk(array_values(array_unique($moduleUuids)), 50) as $chunk) {
+      $query = (new Query())->filter('module', $chunk, 'in');
+      foreach ($this->client->iterate(self::ENTITY_TYPE, self::BUNDLE, $query) as $row) {
+        $release = ReleaseRow::fromArray($row);
+        if ($release->moduleUuid !== null) {
+          $rows[$release->moduleUuid][] = $release;
+        }
+      }
+    }
+    return $rows;
+  }
+
   /** @param string[] $uuids @return array<string, ReleaseRow> keyed by uuid */
   public function findByUuids(array $uuids): array {
     $rows = [];
