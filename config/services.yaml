@@ -22,6 +22,9 @@ services:
       - '../src/Gateway/Dto/'
       - '../src/Gateway/Exception/'
       - '../src/Console/Exception/'
+      - '../src/DevKit/DevKit.php'
+      - '../src/DevKit/DevKitInstallResult.php'
+      - '../src/DevKit/McpCommand.php'
 
   # Repositories are typed against the interface; wire it explicitly rather
   # than relying on autowiring's single-implementation fallback.

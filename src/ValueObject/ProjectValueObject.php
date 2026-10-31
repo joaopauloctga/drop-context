@@ -10,6 +10,7 @@ class ProjectValueObject {
     public string $version,
     public array $skills = [],
     public array $agents = [],
+    public ?object $devKit = null,
   )
   {
 

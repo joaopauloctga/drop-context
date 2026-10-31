@@ -19,6 +19,7 @@ class CodeAgentsService {
     '.agents',
     '.cursor',
     '.codex',
+    '.opencode',
   ];
 
   public function readCurrentCodeAgents(): array {

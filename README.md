@@ -84,6 +84,8 @@ Discovery commands such as `skill:list`, `skill:show`, `skill:tags`, `agent:list
 | `agent:add <agent>` | `a:add` | Download and install an agent as project-root `AGENTS.md` |
 | `agent:status` | `a:status` | Check installed agents and choose available updates |
 | `agent:remove <agent>` | `a:rm` | Remove an installed agent |
+| `dev:install` | | Install the Drop Context Developer agent, its skills and the MCP server into the project's coding agents |
+| `dev:remove` | | Remove what `dev:install` added |
 | `module:list [search]` | `m:list`, `module:search` | Find Drupal modules with available skills |
 | `code-agents:list` | `ca:ls` | List configured coding-agent directories (`.claude`, `.cursor`, …) |
 | `code-agents:add <agent>` | `ca:add` | Add a coding agent |
@@ -188,6 +190,42 @@ drop-context agent:remove drop-view-developer --purge
 
 Agents are catalog AGENTS.md files. Install by **machine name**: official Drop Context agents use a bare slug (`drop-view-developer`); user-authored agents use `{username}:{slug}` (`joaopauloc:views-developer`). `agent:add` caches them under `~/.drop-context/agents/` and symlinks `AGENTS.md` at the project root (one active file). This is separate from `code-agents:*`, which only manages coding-agent directories.
 
+### Install the Drop Context Developer
+
+```bash
+drop-context dev:install
+drop-context dev:install --code-agents=.claude,.cursor
+drop-context dev:install --ref=drop-context-dev--v1.0.0
+drop-context dev:install --from=../drop-context-dev
+drop-context dev:remove
+```
+
+`dev:install` installs [drop-context-dev](https://github.com/joaopauloctga/drop-context-dev)
+— the `drop-context-developer` agent and its `dc-plan` / `dc-implement` skills — and
+registers this package's MCP server, for every coding agent the project uses:
+
+| Code agent | Skills | Agent | MCP server |
+|---|---|---|---|
+| `.claude` (Claude Code) | `.claude/skills/` | `.claude/agents/drop-context-developer.md` | `.mcp.json` |
+| `.cursor` (Cursor) | `.cursor/skills/` | `.cursor/agents/drop-context-developer.md` | `.cursor/mcp.json` |
+| `.codex` (Codex) | `.agents/skills/` | `.codex/agents/drop-context-developer.toml` | `.codex/config.toml` |
+| `.opencode` (OpenCode) | `.opencode/skills/` | `.opencode/agents/drop-context-developer.md`, plus `/dc-plan` and `/dc-implement` commands | `opencode.json` |
+| `.agents` | `.agents/skills/` | — | — |
+
+The code agents are the ones present in the project plus your preferred ones;
+`--code-agents` picks them explicitly. The repository is downloaded from GitHub
+(`--ref`, default `main`) into `~/.drop-context/dev-kit/<ref>/`; `--from` uses a
+local checkout instead. Skills, and the Claude Code agent, are symlinks into that
+copy; the other agent formats are generated from it. MCP configs get the absolute
+path of `drop-context-mcp`, so desktop apps and background services that lack
+Composer's bin dir on their `PATH` still start it. Other keys in those files are
+left alone.
+
+Run `dev:install` again to update. It only replaces files it wrote itself; anything
+else at an install path is reported and kept unless you pass `--force`. A project
+`.mcp.json` server needs approval the first time Claude Code starts, and Codex reads
+`.codex/config.toml` only in trusted projects.
+
 ### Configure coding agents
 
 ```bash
@@ -197,7 +235,7 @@ drop-context code-agents:remove .cursor
 drop-context code-agents:set-preferable .claude,.agents
 ```
 
-Supported directories are `.claude`, `.agents`, `.cursor`, and `.codex`.
+Supported directories are `.claude`, `.agents`, `.cursor`, `.codex`, and `.opencode`.
 
 ## MCP server
 
