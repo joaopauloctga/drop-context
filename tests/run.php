@@ -23,6 +23,7 @@ use DropContext\Gateway\Query;
 use DropContext\Gateway\Repository\SkillRepository;
 use DropContext\Service\AppStoreService;
 use DropContext\Service\AppStoreSkillService;
+use DropContext\Service\CodeAgentsService;
 use DropContext\Service\SkillService;
 use DropContext\Service\SkillStatusService;
 use DropContext\SkillUpdateState;
@@ -904,3 +905,56 @@ assertSameValue(false, is_file($projectRoot . '/.cursor/mcp.json'), 'uninstall d
 
 $fs->remove($devRoot);
 fwrite(STDOUT, "DevKit tests passed.\n");
+
+// ---------------------------------------------------------------------
+// SkillService: per-code-agent skills dirs (.codex reads .agents/skills)
+// ---------------------------------------------------------------------
+
+assertSameValue('.agents/skills', CodeAgentsService::skillsDir('.codex'), 'Codex skills live in .agents/skills');
+assertSameValue('.claude/skills', CodeAgentsService::skillsDir('.claude'), 'other code agents keep <dir>/skills');
+
+$skillRoot = sys_get_temp_dir() . '/drop-context-skilldirs-test-' . bin2hex(random_bytes(4));
+$skillProject = $skillRoot . '/project';
+$cachedSkill = $skillRoot . '/cache/dc-x';
+$fs->dumpFile($cachedSkill . '/SKILL.md', "# X\n");
+$fs->mkdir($skillProject . '/.codex/skills');
+symlink($cachedSkill, $skillProject . '/.codex/skills/dc-x');
+
+$projectStore = new class($skillProject) extends AppStoreService {
+  public function __construct(private readonly string $root) {}
+  public function getRunnableProject(): ?\DropContext\ValueObject\RunnableProjectValueObject {
+    return new \DropContext\ValueObject\RunnableProjectValueObject(name: 'acme/site', path: $this->root);
+  }
+};
+$pathService = new class($fs, $projectStore, $cachedSkill) extends SkillService {
+  public function __construct(Filesystem $fs, AppStoreService $store, private readonly string $cached) {
+    $this->filesystem = $fs;
+    $this->appStoreService = $store;
+  }
+  public function downloadSkill(SkillRow $skill, string $source = 'drop-context'): string {
+    return $this->cached;
+  }
+};
+
+// A legacy .codex/skills install is still found and removable.
+assertSameValue(['.codex' => $skillProject . '/.codex/skills/dc-x'], $pathService->findInstalledPaths('dc-x', ['.codex']), 'a legacy .codex/skills link is found');
+
+// Reinstalling moves it to .agents/skills, linked once for .codex and .agents.
+$installed = $pathService->installSkill(remoteSkill('uuid-x', 'dc-x', '1.0'), ['.codex', '.agents', '.claude']);
+assertSameValue($cachedSkill, readlink($skillProject . '/.agents/skills/dc-x'), 'Codex skills are linked into .agents/skills');
+assertSameValue(false, is_link($skillProject . '/.codex/skills/dc-x'), 'the legacy .codex/skills link is migrated away');
+assertSameValue(
+  [['.codex', $skillProject . '/.agents/skills/dc-x'], ['.agents', $skillProject . '/.agents/skills/dc-x'], ['.claude', $skillProject . '/.claude/skills/dc-x']],
+  $installed->agents,
+  'each code agent records where its skill lives',
+);
+assertSameValue($skillProject . '/.agents/skills/dc-x', $pathService->findInstalledPaths('dc-x', ['.codex'])['.codex'], 'Codex finds its skill in .agents/skills');
+
+$removed = $pathService->removeSkill('dc-x', ['.codex', '.claude']);
+assertSameValue([['.codex', $skillProject . '/.agents/skills/dc-x'], ['.claude', $skillProject . '/.claude/skills/dc-x']], $removed, 'removeSkill removes from the new dirs');
+
+symlink($cachedSkill, $skillProject . '/.codex/skills/dc-x');
+assertSameValue([['.codex', $skillProject . '/.codex/skills/dc-x']], $pathService->removeSkill('dc-x', ['.codex']), 'removeSkill removes a legacy link');
+
+$fs->remove($skillRoot);
+fwrite(STDOUT, "SkillService skills dir tests passed.\n");

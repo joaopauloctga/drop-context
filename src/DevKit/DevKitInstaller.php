@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DropContext\DevKit;
 
+use DropContext\Service\CodeAgentsService;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -64,18 +65,14 @@ class DevKitInstaller {
       switch ($codeAgent) {
         case '.claude':
           $files[".claude/agents/{$agentFile}.md"] = ['link', $kit->agentPath()];
-          $skillsDir = '.claude/skills';
           break;
 
         case '.cursor':
           $files[".cursor/agents/{$agentFile}.md"] = ['write', $this->renderer->cursor($kit)];
-          $skillsDir = '.cursor/skills';
           break;
 
         case '.codex':
           $files[".codex/agents/{$agentFile}.toml"] = ['write', $this->renderer->codex($kit)];
-          // Codex reads repository skills from .agents/skills, not .codex/skills.
-          $skillsDir = '.agents/skills';
           break;
 
         case '.opencode':
@@ -83,11 +80,9 @@ class DevKitInstaller {
           foreach (array_keys($kit->skills()) as $skill) {
             $files[".opencode/commands/{$skill}.md"] = ['write', $this->renderer->opencodeCommand($kit, $skill)];
           }
-          $skillsDir = '.opencode/skills';
           break;
 
         case '.agents':
-          $skillsDir = '.agents/skills';
           break;
 
         default:
@@ -96,6 +91,7 @@ class DevKitInstaller {
       }
 
       $agentPath = array_key_first($files);
+      $skillsDir = CodeAgentsService::skillsDir($codeAgent);
       foreach ($kit->skills() as $skill => $dir) {
         $files["{$skillsDir}/{$skill}"] = ['link', $dir];
       }

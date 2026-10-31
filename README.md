@@ -235,7 +235,10 @@ drop-context code-agents:remove .cursor
 drop-context code-agents:set-preferable .claude,.agents
 ```
 
-Supported directories are `.claude`, `.agents`, `.cursor`, `.codex`, and `.opencode`.
+Supported directories are `.claude`, `.agents`, `.cursor`, `.codex`, and `.opencode`. Skills go to `<dir>/skills`,
+except for `.codex`: Codex reads project skills from `.agents/skills`, so that is where
+they go. Skills an earlier version installed into `.codex/skills` are still found and
+removed, and move to `.agents/skills` on their next install or update.
 
 ## MCP server
 
