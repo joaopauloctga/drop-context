@@ -23,6 +23,7 @@ use DropContext\Gateway\Query;
 use DropContext\Gateway\Repository\SkillRepository;
 use DropContext\Service\AppStoreService;
 use DropContext\Service\AppStoreSkillService;
+use DropContext\Service\CodeAgentsService;
 use DropContext\Service\SkillService;
 use DropContext\Service\SkillStatusService;
 use DropContext\SkillUpdateState;
@@ -784,3 +785,176 @@ assertSameValue(true, is_file($written . '/references/extra.md'), 'reference fil
 
 $fs->remove($tmpRoot);
 fwrite(STDOUT, "AgentRow/AgentFileWriter tests passed.\n");
+
+// ---------------------------------------------------------------------
+// dev:install: DevKit, AgentRenderer, McpConfigWriter, DevKitInstaller
+// ---------------------------------------------------------------------
+
+$fs = new Filesystem();
+$devRoot = sys_get_temp_dir() . '/drop-context-devkit-test-' . bin2hex(random_bytes(4));
+$kitRoot = $devRoot . '/kit';
+$projectRoot = $devRoot . '/project';
+$fs->dumpFile($kitRoot . '/.claude-plugin/plugin.json', '{"name": "drop-context-dev", "version": "2.3.4"}');
+$fs->dumpFile($kitRoot . '/agents/drop-context-developer.md', <<<'MD'
+---
+name: drop-context-developer
+description: >-
+  Drupal developer grounded
+  in the drop-context MCP.
+model: inherit
+tools: Read, Edit
+---
+
+You are the developer.
+MD);
+$fs->dumpFile($kitRoot . '/skills/dc-plan/SKILL.md', "---\nname: dc-plan\ndescription: >-\n  Plan a feature: reads docs.\ncontext: fork\nagent: drop-context-developer\n---\n\n# Plan\n");
+$fs->dumpFile($kitRoot . '/skills/dc-plan/references/rules.md', "# Rules\n");
+$fs->dumpFile($kitRoot . '/skills/dc-implement/SKILL.md', "---\nname: dc-implement\ndescription: Implement a feature. Then verify.\n---\n\n# Build\n");
+$fs->mkdir($projectRoot);
+
+// --- DevKit ---
+$kit = \DropContext\DevKit\DevKit::open($kitRoot, 'test');
+assertSameValue('2.3.4', $kit->version(), 'DevKit reads the plugin version');
+assertSameValue(['dc-implement', 'dc-plan'], array_keys($kit->skills()), 'DevKit lists skills by name');
+assertSameValue('Drupal developer grounded in the drop-context MCP.', $kit->agent()['description'], 'DevKit folds the agent description');
+assertSameValue("You are the developer.", $kit->agent()['body'], 'DevKit strips the agent frontmatter');
+try {
+  \DropContext\DevKit\DevKit::open($projectRoot, 'test');
+  assertSameValue(true, false, 'DevKit::open rejects a tree without the agent');
+}
+catch (\RuntimeException) {}
+
+// --- AgentRenderer ---
+$renderer = new \DropContext\DevKit\AgentRenderer();
+assertSameValue('Plan a feature', \DropContext\DevKit\AgentRenderer::summary('Plan a feature: reads docs.'), 'summary cuts at the first clause');
+$codex = $renderer->codex($kit);
+assertSameValue(true, str_contains($codex, "name = \"drop-context-developer\"\n"), 'Codex agent has a TOML name');
+assertSameValue(true, str_contains($codex, "developer_instructions = '''\nYou are the developer.\n'''\n"), 'Codex agent carries the body verbatim');
+[$cursorMeta, $cursorBody] = \DropContext\DevKit\DevKit::parseFrontmatter($renderer->cursor($kit));
+assertSameValue(['name' => 'drop-context-developer', 'description' => 'Drupal developer grounded in the drop-context MCP.', 'model' => 'inherit'], $cursorMeta, 'Cursor agent frontmatter');
+assertSameValue("You are the developer.\n", $cursorBody, 'Cursor agent body');
+[$openMeta] = \DropContext\DevKit\DevKit::parseFrontmatter($renderer->opencode($kit));
+assertSameValue('all', $openMeta['mode'], 'OpenCode agent is primary and subagent');
+assertSameValue('allow', $openMeta['permission']['drop-context_*'], 'OpenCode agent allows the drop-context MCP tools');
+[$planCmd, $planBody] = \DropContext\DevKit\DevKit::parseFrontmatter($renderer->opencodeCommand($kit, 'dc-plan'));
+assertSameValue(['description' => 'Plan a feature', 'agent' => 'drop-context-developer', 'subtask' => true], $planCmd, 'a forked skill becomes a subtask command');
+assertSameValue(true, str_contains($planBody, 'Request: $ARGUMENTS'), 'the command passes its arguments');
+[$implCmd] = \DropContext\DevKit\DevKit::parseFrontmatter($renderer->opencodeCommand($kit, 'dc-implement'));
+assertSameValue(['description' => 'Implement a feature'], $implCmd, 'a main-context skill stays in the main agent');
+
+// --- McpConfigWriter: JSON ---
+$writer = new \DropContext\DevKit\McpConfigWriter($fs);
+$json = $projectRoot . '/.mcp.json';
+$fs->dumpFile($json, "{\n  \"mcpServers\": {\n    \"other\": {\"command\": \"x\", \"env\": {}}\n  }\n}\n");
+$server = ['type' => 'stdio', 'command' => '/bin/mcp', 'args' => []];
+assertSameValue('added', $writer->addJson($json, 'mcpServers', 'drop-context', $server), 'addJson adds a new server');
+assertSameValue('unchanged', $writer->addJson($json, 'mcpServers', 'drop-context', $server), 'addJson is idempotent');
+assertSameValue('kept', $writer->addJson($json, 'mcpServers', 'drop-context', ['command' => 'other']), 'addJson keeps a different server');
+$decoded = json_decode((string) file_get_contents($json), false);
+assertSameValue(true, $decoded->mcpServers->other->env instanceof \stdClass, 'addJson keeps empty objects as objects');
+assertSameValue(true, str_starts_with((string) file_get_contents($json), "{\n  \"mcpServers\""), 'addJson indents with two spaces');
+assertSameValue(true, $writer->removeJson($json, 'mcpServers', 'drop-context'), 'removeJson removes the server');
+assertSameValue(['other'], array_keys((array) json_decode((string) file_get_contents($json))->mcpServers), 'removeJson keeps other servers');
+$fresh = $projectRoot . '/opencode.json';
+$writer->addJson($fresh, 'mcp', 'drop-context', ['type' => 'local'], ['$schema' => 'https://opencode.ai/config.json']);
+assertSameValue(true, $writer->removeJson($fresh, 'mcp', 'drop-context'), 'removeJson removes from a file it created');
+assertSameValue(false, is_file($fresh), 'removeJson deletes a file left with only $schema');
+
+// --- McpConfigWriter: TOML ---
+$toml = $projectRoot . '/.codex/config.toml';
+$fs->dumpFile($toml, "model = \"x\"\n");
+assertSameValue('added', $writer->addToml($toml, 'drop-context', '/bin/mcp'), 'addToml appends a block');
+assertSameValue('unchanged', $writer->addToml($toml, 'drop-context', '/bin/mcp'), 'addToml is idempotent');
+assertSameValue('added', $writer->addToml($toml, 'drop-context', '/opt/mcp'), 'addToml updates its own block');
+assertSameValue(1, substr_count((string) file_get_contents($toml), '[mcp_servers.drop-context]'), 'addToml keeps one block');
+assertSameValue(true, $writer->removeToml($toml), 'removeToml removes the block');
+assertSameValue("model = \"x\"\n", file_get_contents($toml), 'removeToml leaves the rest intact');
+$fs->dumpFile($toml, "[mcp_servers.drop-context]\ncommand = \"mine\"\n");
+assertSameValue('kept', $writer->addToml($toml, 'drop-context', '/bin/mcp'), 'addToml keeps a table it did not write');
+$fs->remove($toml);
+
+// --- DevKitInstaller ---
+$installer = new \DropContext\DevKit\DevKitInstaller($fs, $renderer, $writer);
+$fs->dumpFile($projectRoot . '/.cursor/skills/dc-plan/SKILL.md', "mine\n");
+$result = $installer->install($kit, $projectRoot, ['.claude', '.cursor', '.codex', '.opencode', '.agents'], '/bin/mcp');
+assertSameValue(['.cursor/skills/dc-plan'], $result->skipped, 'install skips files it did not write');
+assertSameValue("mine\n", file_get_contents($projectRoot . '/.cursor/skills/dc-plan/SKILL.md'), 'install leaves a skipped file alone');
+assertSameValue($kitRoot . '/skills/dc-plan', readlink($projectRoot . '/.claude/skills/dc-plan'), 'skills link into the kit');
+assertSameValue(true, is_link($projectRoot . '/.agents/skills/dc-implement'), 'Codex skills go to .agents/skills');
+assertSameValue(false, file_exists($projectRoot . '/.codex/skills'), 'nothing goes to .codex/skills');
+assertSameValue(true, is_file($projectRoot . '/.opencode/commands/dc-plan.md'), 'OpenCode gets a command per skill');
+assertSameValue(1, count(array_keys($result->paths, '.agents/skills/dc-plan', true)), '.codex and .agents share one skills dir');
+assertSameValue(['.mcp.json', '.cursor/mcp.json', '.codex/config.toml', 'opencode.json'], array_column($result->mcp, 'file'), 'MCP registered per client');
+assertSameValue('.agents/skills', $result->summary['.codex']['skills'], 'summary reports the Codex skills dir');
+
+$again = $installer->install($kit, $projectRoot, ['.claude', '.cursor', '.codex', '.opencode', '.agents'], '/bin/mcp', $result->paths);
+assertSameValue($result->paths, $again->paths, 'reinstall rewrites the same paths');
+assertSameValue(['unchanged'], array_values(array_unique(array_column($again->mcp, 'status'))), 'reinstall leaves MCP entries unchanged');
+
+$forced = $installer->install($kit, $projectRoot, ['.cursor'], '/bin/mcp', force: true);
+assertSameValue([], $forced->skipped, '--force replaces files it did not write');
+
+$fs->dumpFile($projectRoot . '/.opencode/agents/drop-context-developer.md', "hand edited\n");
+$warnings = $installer->uninstall($projectRoot, array_unique(array_merge($result->paths, $forced->paths)), $again->ownedMcp());
+assertSameValue(['.opencode/agents/drop-context-developer.md was changed by hand; left in place.'], $warnings, 'uninstall keeps hand-edited files');
+assertSameValue(false, is_link($projectRoot . '/.claude/skills/dc-plan'), 'uninstall removes links');
+assertSameValue(false, is_dir($projectRoot . '/.claude/skills'), 'uninstall prunes empty dirs');
+assertSameValue(true, is_dir($projectRoot . '/.claude'), 'uninstall keeps the code agent dir');
+assertSameValue(['other'], array_keys((array) json_decode((string) file_get_contents($json))->mcpServers), 'uninstall keeps foreign MCP servers');
+assertSameValue(false, is_file($projectRoot . '/.cursor/mcp.json'), 'uninstall deletes MCP configs it created');
+
+$fs->remove($devRoot);
+fwrite(STDOUT, "DevKit tests passed.\n");
+
+// ---------------------------------------------------------------------
+// SkillService: per-code-agent skills dirs (.codex reads .agents/skills)
+// ---------------------------------------------------------------------
+
+assertSameValue('.agents/skills', CodeAgentsService::skillsDir('.codex'), 'Codex skills live in .agents/skills');
+assertSameValue('.claude/skills', CodeAgentsService::skillsDir('.claude'), 'other code agents keep <dir>/skills');
+
+$skillRoot = sys_get_temp_dir() . '/drop-context-skilldirs-test-' . bin2hex(random_bytes(4));
+$skillProject = $skillRoot . '/project';
+$cachedSkill = $skillRoot . '/cache/dc-x';
+$fs->dumpFile($cachedSkill . '/SKILL.md', "# X\n");
+$fs->mkdir($skillProject . '/.codex/skills');
+symlink($cachedSkill, $skillProject . '/.codex/skills/dc-x');
+
+$projectStore = new class($skillProject) extends AppStoreService {
+  public function __construct(private readonly string $root) {}
+  public function getRunnableProject(): ?\DropContext\ValueObject\RunnableProjectValueObject {
+    return new \DropContext\ValueObject\RunnableProjectValueObject(name: 'acme/site', path: $this->root);
+  }
+};
+$pathService = new class($fs, $projectStore, $cachedSkill) extends SkillService {
+  public function __construct(Filesystem $fs, AppStoreService $store, private readonly string $cached) {
+    $this->filesystem = $fs;
+    $this->appStoreService = $store;
+  }
+  public function downloadSkill(SkillRow $skill, string $source = 'drop-context'): string {
+    return $this->cached;
+  }
+};
+
+// A legacy .codex/skills install is still found and removable.
+assertSameValue(['.codex' => $skillProject . '/.codex/skills/dc-x'], $pathService->findInstalledPaths('dc-x', ['.codex']), 'a legacy .codex/skills link is found');
+
+// Reinstalling moves it to .agents/skills, linked once for .codex and .agents.
+$installed = $pathService->installSkill(remoteSkill('uuid-x', 'dc-x', '1.0'), ['.codex', '.agents', '.claude']);
+assertSameValue($cachedSkill, readlink($skillProject . '/.agents/skills/dc-x'), 'Codex skills are linked into .agents/skills');
+assertSameValue(false, is_link($skillProject . '/.codex/skills/dc-x'), 'the legacy .codex/skills link is migrated away');
+assertSameValue(
+  [['.codex', $skillProject . '/.agents/skills/dc-x'], ['.agents', $skillProject . '/.agents/skills/dc-x'], ['.claude', $skillProject . '/.claude/skills/dc-x']],
+  $installed->agents,
+  'each code agent records where its skill lives',
+);
+assertSameValue($skillProject . '/.agents/skills/dc-x', $pathService->findInstalledPaths('dc-x', ['.codex'])['.codex'], 'Codex finds its skill in .agents/skills');
+
+$removed = $pathService->removeSkill('dc-x', ['.codex', '.claude']);
+assertSameValue([['.codex', $skillProject . '/.agents/skills/dc-x'], ['.claude', $skillProject . '/.claude/skills/dc-x']], $removed, 'removeSkill removes from the new dirs');
+
+symlink($cachedSkill, $skillProject . '/.codex/skills/dc-x');
+assertSameValue([['.codex', $skillProject . '/.codex/skills/dc-x']], $pathService->removeSkill('dc-x', ['.codex']), 'removeSkill removes a legacy link');
+
+$fs->remove($skillRoot);
+fwrite(STDOUT, "SkillService skills dir tests passed.\n");

@@ -56,15 +56,21 @@ class SkillService {
     );
 
     $failures = [];
+    $linked = [];
     foreach ($codeAgents as $codeAgent) {
-      $agentSkillsDir = implode(DIRECTORY_SEPARATOR, [$projectDir, $codeAgent, "skills"]);
+      $agentSkillsDir = $projectDir . DIRECTORY_SEPARATOR . CodeAgentsService::skillsDir($codeAgent);
       $target = $agentSkillsDir . DIRECTORY_SEPARATOR . $skillName;
       try {
-        $this->filesystem->mkdir($agentSkillsDir);
-        if ($this->filesystem->exists($target)) {
-          $this->filesystem->remove($target);
+        // Code agents can share a skills dir (.codex and .agents): link once.
+        if (!in_array($target, $linked, TRUE)) {
+          $this->filesystem->mkdir($agentSkillsDir);
+          if ($this->filesystem->exists($target) || is_link($target)) {
+            $this->filesystem->remove($target);
+          }
+          $this->filesystem->symlink($skillDir, $target);
+          $linked[] = $target;
         }
-        $this->filesystem->symlink($skillDir, $target);
+        $this->removeLegacyLinks($projectDir, $codeAgent, $skillName);
         $skillInstalled->agents[] = [$codeAgent, $target];
       }
       catch (\Exception $e) {
@@ -97,12 +103,13 @@ class SkillService {
 
     $removed = [];
     foreach ($codeAgents as $codeAgent) {
-      $target = implode(DIRECTORY_SEPARATOR, [$projectDir, $codeAgent, "skills", $skillName]);
-      if (!$this->filesystem->exists($target) && !is_link($target)) {
-        continue;
+      foreach ($this->candidatePaths($projectDir, $codeAgent, $skillName) as $target) {
+        if (!$this->filesystem->exists($target) && !is_link($target)) {
+          continue;
+        }
+        $this->filesystem->remove($target);
+        $removed[] = [$codeAgent, $target];
       }
-      $this->filesystem->remove($target);
-      $removed[] = [$codeAgent, $target];
     }
     return $removed;
   }
@@ -120,13 +127,43 @@ class SkillService {
 
     $paths = [];
     foreach ($codeAgents as $codeAgent) {
-      $target = implode(DIRECTORY_SEPARATOR, [$runnableProject->path, $codeAgent, "skills", $skillName]);
-      // is_link() catches broken symlinks Filesystem::exists() reports absent.
-      if ($this->filesystem->exists($target) || is_link($target)) {
-        $paths[$codeAgent] = $target;
+      foreach ($this->candidatePaths($runnableProject->path, $codeAgent, $skillName) as $target) {
+        // is_link() catches broken symlinks Filesystem::exists() reports absent.
+        if ($this->filesystem->exists($target) || is_link($target)) {
+          $paths[$codeAgent] = $target;
+          break;
+        }
       }
     }
     return $paths;
+  }
+
+  /**
+   * Where a skill may live for a code agent: its skills dir, then the dirs
+   * earlier CLI versions used.
+   *
+   * @return string[]
+   */
+  private function candidatePaths(string $projectDir, string $codeAgent, string $skillName): array {
+    $dirs = array_merge(
+      [CodeAgentsService::skillsDir($codeAgent)],
+      CodeAgentsService::legacySkillsDirs($codeAgent),
+    );
+    return array_map(
+      static fn (string $dir): string => $projectDir . DIRECTORY_SEPARATOR . $dir . DIRECTORY_SEPARATOR . $skillName,
+      $dirs,
+    );
+  }
+
+  /** Drops the links an earlier CLI version left in a legacy skills dir. */
+  private function removeLegacyLinks(string $projectDir, string $codeAgent, string $skillName): void {
+    foreach (CodeAgentsService::legacySkillsDirs($codeAgent) as $dir) {
+      $legacy = $projectDir . DIRECTORY_SEPARATOR . $dir . DIRECTORY_SEPARATOR . $skillName;
+      // Only symlinks: this CLI never wrote real directories there.
+      if (is_link($legacy)) {
+        $this->filesystem->remove($legacy);
+      }
+    }
   }
 
   /**
